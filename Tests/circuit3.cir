@@ -5,4 +5,5 @@ C
 COMPONENTS:
 G0, NOT, W1, A
 G1, NOT, W2, C
-G3, AND3, F, W1, W2, B
+G2, NOT, W3, B
+G3, AND3, F, W1, W2, W3
