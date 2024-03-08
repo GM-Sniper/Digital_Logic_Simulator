@@ -8,7 +8,6 @@ int main() {
     ifstream inputFile("Tests/testCircuit1.cir"); // Open file for reading
     if (!inputFile) {
         cout << "Error opening file" << endl;
-    
         return 1;
     }
 
