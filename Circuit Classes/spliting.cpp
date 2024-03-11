@@ -1,43 +1,96 @@
+// #include<iostream>
+// #include<string>
+// using namespace std;
+
+// void spliting(string arr[], char arr1[], string propirity) 
+// {
+//     int count = 0;
+//     int count1 = 0;
+//     for (int i = 0; i < propirity.length(); i++)
+//     {
+//         if (propirity[i] != '&')
+//         {
+//             arr[count] = propirity[i];
+//             count++;
+//         }
+//         else
+//         {
+//             arr1[count1] = propirity[i]; 
+//             count1++;
+//         }
+//     }
+// }
+
+// int main()
+// {
+//     string arr[5]={" "," "," "," "," "};
+//     char arr1[1];
+
+//     string trail1 = "i1&i2";
+
+//     spliting(arr, arr1, trail1);
+
+//     for (int i = 0; i < 5; i++)
+//     {
+//         cout << arr[i];
+//     }
+
+//     for (int i = 0; i < 1; i++) 
+//     {
+//         cout << arr1[i];
+//     }
+
+//     return 0; 
+// }
 #include<iostream>
 #include<string>
+#include<vector>
 using namespace std;
 
-void spliting(string arr[], char arr1[], string propirity) 
+void spliting(vector<string>& inputs, vector<char>& gatesExpressions, const string& outputexpression) 
 {
-    int count = 0;
-    int count1 = 0;
-    for (int i = 0; i < propirity.length(); i++)
+    string tempinput;
+   
+    for (int i = 0; i < outputexpression.length(); i++)
     {
-        if (propirity[i] != '&')
+        if (outputexpression[i] == '&')
         {
-            arr[count] = propirity[i];
-            count++;
+            gatesExpressions.push_back(outputexpression[i]);  
+           
+        }
+        else if(outputexpression[i] == '|')
+        {
+            gatesExpressions.push_back(outputexpression[i]); 
+        }
+        else if(outputexpression[i] == '~')
+        {
+            gatesExpressions.push_back(outputexpression[i]);   
         }
         else
         {
-            arr1[count1] = propirity[i]; 
-            count1++;
+            tempinput += outputexpression[i]; 
         }
     }
+    inputs.push_back(tempinput);
 }
 
 int main()
 {
-    string arr[5]={" "," "," "," "," "};
-    char arr1[1];
+    vector<string> inputs; 
+    vector<char> gatesExpressions; 
 
-    string trail1 = "i1&i2";
+    string outputExpressions = "i1&i2";
 
-    spliting(arr, arr1, trail1);
+    spliting(inputs, gatesExpressions, outputExpressions);
 
-    for (int i = 0; i < 5; i++)
+    for (int i = 0; i < inputs.size(); i++)
     {
-        cout << arr[i];
+        cout << inputs[i];
     }
 
-    for (int i = 0; i < 1; i++) 
+    for (int i = 0; i < gatesExpressions.size(); i++) 
     {
-        cout << arr1[i];
+        cout << gatesExpressions[i];
     }
 
     return 0; 
