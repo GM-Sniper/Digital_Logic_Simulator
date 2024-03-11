@@ -38,8 +38,9 @@ vector<Gates> parseLibraryFile(const string& filename) {
 
 int main() {
     vector<Gates> components = parseLibraryFile("Tests/libFile.lib");
-    for(const auto& component : components) {
+   /* for(const auto& component : components) {
         cout << "Component: " << component.getGateName() << " Num Inputs: " << component.getNumOfInputs()
                   << " Output Expression: " << component.getOutputExpression() << " Delay (ps): " << component.getDelayTime() << endl;
-    }
+    }*/
+    
 }
