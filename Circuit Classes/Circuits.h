@@ -3,10 +3,12 @@
 
 #include <string>
 #include <vector>
+#include <memory>
+#include "Gates.h"
 
 // Forward declaration of Gates class
 class Stimuli;
-class Gates;
+
 
 using namespace std;
 

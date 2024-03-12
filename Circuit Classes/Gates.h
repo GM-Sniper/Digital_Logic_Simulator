@@ -6,10 +6,10 @@ using namespace std;
 
 class Gates {
 private:
-    string gateName;
-    int numOfInputs;
-    string outputExpression;
-    int timeDelay; // time is in picoseconds (x10^-12)
+    string gateName=" ";
+    int numOfInputs=0;
+    string outputExpression=" ";
+    int timeDelay=0; // time is in picoseconds (x10^-12)
 
 public:
     // Constructor
