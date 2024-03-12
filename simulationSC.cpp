@@ -96,6 +96,8 @@ vector<CircuitComponent> parseCircuitFile(const string& filename) {
                 if (iss >> name >> type >> output) { // assume that the output is one char
                     // Parse input signals for the component
                     string input;
+
+                    // we need to change the conspet of inputs and outputs to be inputs,outputs,wires//
                     while (iss >> input) {
                         
                         // Create Stimuli object for each input and add it to a vector
