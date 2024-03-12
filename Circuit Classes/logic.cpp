@@ -8,39 +8,69 @@ struct wire
     string name;
     bool type;
 
-    wire(string n,bool t): name(n),type(t){}
+    wire(string n, bool t) : name(n), type(t) {}
 };
 
-bool getwire(map<string,vector<wire>> vec,string wire_name)
+bool getwire(map<string, vector<wire>> vec, string wire_name)
 {
-    for(auto it=vec.begin();it!=vec.end();it++)
+    for (auto it = vec.begin(); it != vec.end(); it++)
     {
-        if(it->second[0].name==wire_name)
+        for (int i = 0; i < it->second.size(); i++)
         {
-            cout<<"annnnaaaaaaaaaaa "<<it->second[0].name<<"   "<<it->second[0].type<<endl;
-            return it->second[0].type;
+            if (it->second[i].name == wire_name)
+            {
+                return it->second[i].type;
+            }
         }
     }
     return 0;
 }
-bool function(map<string,vector<wire>> vec)
+bool function(map<string, vector<wire>> vec)
 {
-    bool output;
-    for(auto it=vec.begin();it!=vec.end();it++)
+    bool output = false;
+    for (auto it = vec.begin(); it != vec.end(); it++)
     {
-        if(it->first=="NOT")
+        if (it->first == "NOT")
         {
-            cout<<"jhfkshdfhsjkdhfkshdfkjhdkjfhskjhdfkjhskjfh"<<endl;
-            it->second[0].type=!(it->second[1].type);
+            it->second[0].type = !(it->second[1].type);
         }
-        else if(it->first=="AND2")
+        else if (it->first == "AND2")
         {
-            cout<<"jkshdfsjkdfh"<<endl;
-            cout<<it->second[1].name<<endl;
-            cout<<getwire(vec,it->second[1].name)<<endl;
-            it->second[0].type=(getwire(vec,it->second[1].name)&getwire(vec,it->second[2].name));
+            it->second[0].type = (getwire(vec, it->second[1].name) & getwire(vec, it->second[2].name));
         }
-        output=it->second[0].type;
+        else if (it->first == "OR2")
+        {
+            it->second[0].type = (getwire(vec, it->second[1].name) | getwire(vec, it->second[2].name));
+        }
+        else if (it->first == "NAND2")
+        {
+            it->second[0].type = !(getwire(vec, it->second[1].name) & getwire(vec, it->second[2].name));
+        }
+        else if (it->first == "NOR2")
+        {
+            it->second[0].type = !(getwire(vec, it->second[1].name) || getwire(vec, it->second[2].name));
+        }
+        else if (it->first == "XOR2")
+        {
+            it->second[0].type = (getwire(vec, it->second[1].name) & (!getwire(vec, it->second[2].name))) | (!getwire(vec, it->second[1].name) & getwire(vec, it->second[2].name));
+        }
+        else if (it->first == "AND3")
+        {
+            it->second[0].type = getwire(vec, it->second[1].name) & (getwire(vec, it->second[2].name) & getwire(vec, it->second[3].name));
+        }
+        else if(it->first=="OR3")
+        {
+            it->second[0].type= getwire(vec, it->second[1].name) | (getwire(vec, it->second[2].name) | getwire(vec, it->second[3].name));
+        }
+        else if(it->first=="NAND3")
+        {
+            it->second[0].type= !(getwire(vec, it->second[1].name) & (getwire(vec, it->second[2].name) & getwire(vec, it->second[3].name)));
+        }
+        else if(it->first=="NOR3")
+        {
+            it->second[0].type=!(getwire(vec, it->second[1].name) | (getwire(vec, it->second[2].name) | getwire(vec, it->second[3].name)));
+        }
+        output = it->second[0].type;
     }
 
     return output;
@@ -48,11 +78,12 @@ bool function(map<string,vector<wire>> vec)
 
 int main()
 {
-    wire A("A",0);
-    wire B("B",1);
-    wire C("C",0);
-    wire D("D",0);
-    map<string,vector<wire>> mp={/*{"NOT",{wire("w1",0),A}},*/{"AND2",{wire("w2",0),wire("w1",1),B}}};
+    wire A("A", 1);
+    wire B("B", 1);
+    wire C("C", 1);
+    wire D("D", 0);
+    map<string, vector<wire>> mp = {{"NOT", {wire("w1", 0), A}}, {"AND2", {wire("w2", 0), wire("w1", 0), B}}, {"XOR2", {wire("w3", 0), D, C}}};
 
-    cout<<function(mp)<<endl;
+    cout << function(mp) << endl;
+    // function(mp);
 }
