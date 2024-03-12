@@ -115,6 +115,10 @@ vector<CircuitComponent> parseCircuitFile(const string& filename) {
                 
                 //     Stimuli stimuli(0, input[0], false); // Set initial time stamp to 0 and logic value to false
                 //     // You might want to validate and process the input further as needed
+
+                // we can make put a comma after every line in the string
+                // then when we deal with the string outside we remove it (that will help if someone named the input like this A1 )
+
                  }
             }
             for(int i=0;i<input.length();i++)
@@ -140,7 +144,16 @@ vector<CircuitComponent> parseCircuitFile(const string& filename) {
                     // Parse input signals for the component
                     string input;
 
-                    // we need to change the conspet of inputs and outputs to be inputs,outputs,wires//
+                    // we need to change the conspet of inputs and outputs to be inputs,outputs,wires but we will face a problem
+                    // which is (the wires will be outputs and inputs in the same time) 
+                    // in order to solve this porblem we can use many approches. For instance we read the data stored and if it matches 
+                    // with the data in the input vector, we remove it (we get rid of the inputs)
+                    // then we loop over ......... if it is unique, so it is the ouput, so we store it in other place, then remove it
+                    // after that we will be left with the wires only. However, that is not enough becuase now you do not know which input or wire
+                    // is with who. There are many approaches to solve such a problem, like 2D vector (the first vector will be of the output(wheter it is an out put or wire acts like output))
+                    // then the second vector will be for the (inputs, whether it is inputs or wires acts like inputs)
+                    //or we use a system of commas, like before. (Other ideas can be implemented) 
+
                     while (iss >> input) {
                         
                         // Create Stimuli object for each input and add it to a vector
