@@ -3,10 +3,14 @@
 #include <vector>
 using namespace std;
 
-struct wire
+struct wire             
 {
     string name;
     bool type;
+
+    // determine (that type change from input/ wire / output to be stages hence we intisialize it to be zero then if it is used for once)
+    // it will be output(1) ; if it is used again it will be input(2) // there should be a desgin wise how to change it in order not to
+    // fall down what if the wire after it is became output, it was used twice as inputs (we can know that by the time delay) 
 
     wire(string n, bool t) : name(n), type(t) {}
 };
@@ -48,11 +52,11 @@ bool function(map<string, vector<wire>> vec)
         }
         else if (it->first == "NOR2")
         {
-            it->second[0].type = !(getwire(vec, it->second[1].name) || getwire(vec, it->second[2].name));
+            it->second[0].type = !(getwire(vec, it->second[1].name) | getwire(vec, it->second[2].name));
         }
         else if (it->first == "XOR2")
         {
-            it->second[0].type = (getwire(vec, it->second[1].name) & (!getwire(vec, it->second[2].name))) | (!getwire(vec, it->second[1].name) & getwire(vec, it->second[2].name));
+            it->second[0].type = (getwire(vec, it->second[1].name) & (!getwire(vec, it->second[2].name))) | (!getwire(vec, it->second[1].name) && getwire(vec, it->second[2].name));
         }
         else if (it->first == "AND3")
         {
@@ -70,7 +74,7 @@ bool function(map<string, vector<wire>> vec)
         {
             it->second[0].type=!(getwire(vec, it->second[1].name) | (getwire(vec, it->second[2].name) | getwire(vec, it->second[3].name)));
         }
-        output = it->second[0].type;
+        output = it->second[2].type;
     }
 
     return output;
@@ -83,7 +87,6 @@ int main()
     wire C("C", 1);
     wire D("D", 0);
     map<string, vector<wire>> mp = {{"NOT", {wire("w1", 0), A}}, {"AND2", {wire("w2", 0), wire("w1", 0), B}}, {"XOR2", {wire("w3", 0), D, C}}};
-
     cout << function(mp) << endl;
     // function(mp);
 }
