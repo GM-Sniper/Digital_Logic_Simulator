@@ -28,13 +28,56 @@ vector<Gates> parseLibraryFile(const string& filename) {
             cerr << "Error parsing line: " << line << endl;
             continue;
         }
-        name.erase(name.length()-1,1);
-        outputExpression.erase(outputExpression.length()-1,1);
+        if(name.at(name.length()-1)==',')
+            name.erase(name.length()-1,1); // Removing the included comma in the gate name if necessery
+        
+        if(outputExpression.at(outputExpression.length()-1)==',')
+            outputExpression.erase(outputExpression.length()-1,1); // Removing the included comma in the outputExpression if necessery
         
         
-        components.push_back({name, numInputs, outputExpression, delayPs});
+        //components.push_back({name, string(" "),numInputs, outputExpression, delayPs});
     }
     return components;
+}
+
+vector<Stimuli> parseStimuliFile(const string& filename)
+{
+    vector<Stimuli> stimuli;
+
+    ifstream file(filename);
+    if (!file.is_open()) {
+        cerr << "Error: Unable to open file " << filename << endl;
+        return stimuli;
+    }
+
+    string line;
+    while (getline(file, line)) {
+        stringstream ss(line);
+        string token;
+
+        int timeStamp;
+        char input;
+        bool logicValue;
+
+        // Parse time stamp
+        getline(ss, token, ',');
+        timeStamp = stoll(token);
+
+        // Parse input
+        getline(ss, token, ',');
+        input = token[1];
+
+        // Parse logic value
+        getline(ss, token, ',');
+        logicValue = stoi(token);
+
+        // Add stimulus to the vector
+        stimuli.push_back({timeStamp,input,logicValue});
+    }
+
+    file.close();
+        cout<<stimuli[0].getInput()<<" "<< stimuli[0].getTimeStamp()<<" "<<stimuli[0].getLogicValue()<<endl;
+        return stimuli;
 }
 
 vector<CircuitComponent> parseCircuitFile(const string& filename) {
@@ -114,7 +157,7 @@ vector<CircuitComponent> parseCircuitFile(const string& filename) {
                     //     outputs.push_back(sti);
                     // }
                     // Create Gates object for the component type
-                    Gates gate(name, type , 0, "", 0); // You might need to provide appropriate values here
+                    //Gates gate(name, type , 0, "", 0); // You might need to provide appropriate values here
                     // Create CircuitComponent object and add it to the vector
                     //components.push_back(CircuitComponent(name, gate, output, inputs));
                 }
@@ -134,8 +177,8 @@ vector<CircuitComponent> parseCircuitFile(const string& filename) {
 }
 
 int main() {
-    vector<Gates> components = parseLibraryFile("Tests/libFile.lib");
-    
+    //vector<Gates> components = parseLibraryFile("Tests/libFile.lib");
+    vector<Stimuli> stimuli = parseStimuliFile("Tests/TestCircuit5/stimFileCir5.stim");
    /* for(const auto& component : components) {
         cout << "Component: " << component.getGateName() << " Num Inputs: " << component.getNumOfInputs()
                   << " Output Expression: " << component.getOutputExpression() << " Delay (ps): " << component.getDelayTime() << endl;

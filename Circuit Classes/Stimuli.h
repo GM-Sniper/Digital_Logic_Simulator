@@ -23,5 +23,5 @@ private:
     bool logicValue; // Logic value (0 or 1)
 };
 
-
+#include "Stimuli.cpp"
 #endif // STIMULI_H
