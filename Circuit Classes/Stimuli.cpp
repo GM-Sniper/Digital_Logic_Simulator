@@ -1,15 +1,15 @@
 #include "Stimuli.h"
 
 // Constructor
-Stimuli::Stimuli(int timeStamp, char input, bool logicValue)
-    : timeStamp(timeStamp), input(input), logicValue(logicValue) {}
+Stimuli::Stimuli(int timeStamp, string inputs, bool logicValue)
+    : timeStamp(timeStamp), input(inputs), logicValue(logicValue) {}
 
 // Getters
 int Stimuli::getTimeStamp() const {
     return timeStamp;
 }
 
-char Stimuli::getInput() const {
+string Stimuli::getInput() const {
     return input;
 }
 
@@ -22,7 +22,7 @@ void Stimuli::setTimeStamp(int timeStamp) {
     this->timeStamp = timeStamp;
 }
 
-void Stimuli::setInput(char input) {
+void Stimuli::setInput(string input) {
     this->input = input;
 }
 

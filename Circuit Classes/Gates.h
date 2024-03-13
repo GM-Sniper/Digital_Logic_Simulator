@@ -26,6 +26,8 @@ public:
     void setNumOfInputs(int newNumInputs);
     void setOutputExpression(const string& newOutputExpression);
     void setDelayTime(int newDelayPs);
+
+    //function in gate that determines the type of gate array of inputs-> splitting to split the inputs and outputss, 
 };
 #include "Gates.cpp"
 #endif // GATES_H

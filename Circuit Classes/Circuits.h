@@ -14,25 +14,25 @@ using namespace std;
 
 class CircuitComponent {
 public:
-    CircuitComponent(const string& name, const Gates& type, const string& output, const vector<Stimuli>& inputs);
+    CircuitComponent(const string& name, const string& type, const string& output, const vector<string>& inputs);
 
     // Getters
     string getName() const;
     const Gates& getType() const;
     string getOutput() const;
-    vector<Stimuli> getInputs() const;
+    vector<string> getInputs() const;
 
     // Setters
     void setName(const string& newName);
-    void setType(const Gates& newType);
+    void setType(const string& newType);
     void setOutput(const string& newOutput);
-    void setInputs(const vector<Stimuli>& newInputs);
+    void setInputs(const vector<string>& newInputs);
 
 private:
     string name;
-    Gates type;
+    string type;
     string output;
-    vector<Stimuli> inputs;
+    vector<string> inputs;
 };
 #include "Circuits.cpp"
 #endif // CIRCUIT_COMPONENT_H

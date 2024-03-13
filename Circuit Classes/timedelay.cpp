@@ -19,12 +19,14 @@ void timedelay( int A, int duration )
         
 
         // Introduce a delay of 100 milliseconds
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 
         auto currentTime = std::chrono::steady_clock::now();
 
+
         // Calculate the elapsed time in seconds
         auto elapsedTime = std::chrono::duration_cast<std::chrono::seconds>(currentTime - startTime).count();
+        cout<<elapsedTime<<endl;
 
         // Stop the loop after the desired duration
         if (elapsedTime >= duration) {
@@ -39,7 +41,7 @@ int main()
 {
 
 int A=0;
-timedelay(A,1);
+timedelay(A,10);
 
 
 
