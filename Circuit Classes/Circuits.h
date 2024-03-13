@@ -18,7 +18,7 @@ public:
 
     // Getters
     string getName() const;
-    const Gates& getType() const;
+    const string& getType() const;
     string getOutput() const;
     vector<string> getInputs() const;
 

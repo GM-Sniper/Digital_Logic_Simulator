@@ -4,7 +4,7 @@ B
 S
 COMPONENTS:
 G0, NAND2, W1, S, S
-G1, NAND2, W2, w1, A
+G1, NAND2, W2, W1, A
 G3, NAND2, W3, S, B
-G4, XOR2,  f, w2, W3
+G4, XOR2,  f, W2, W3
 
