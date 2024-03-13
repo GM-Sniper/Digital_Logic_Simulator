@@ -233,57 +233,108 @@ bool function(vector<pair<string, vector<wire>>> vec)
     bool output = false;
     for (auto it = vec.begin(); it != vec.end(); it++)
     {
-        cout << "the Gate: " << it->first << endl;
         if (it->first == "NOT")
         {
-            // cout << "Nooooooooooooooooooooooooooooot" << endl;
-            // cout << it->second[1].name << endl;
+            cout << "Not Gate " << endl;
+            cout << "Input : " << it->second[1].name << "  Boolean state : " << getwire(vec, it->second[1].name) << endl;
             it->second[0].type = !(it->second[1].type);
-            // cout << "hgsdhgfjs  " << it->second[0].type << endl;
+            cout << "Output : " << it->second[0].name << "  Boolean state : " << getwire(vec, it->second[0].name) << endl;
+            cout << "===============================" << endl;
         }
-        else if (it->first == "AND2" || it->first == "AND")
+        else if (it->first == "AND2")
         {
+            cout << "AND2 Gate " << endl;
+            cout << "Inputs : \n"
+                 << "first : " << it->second[1].name << " Boolean state : " << getwire(vec, it->second[1].name) << endl;
+            cout << "Second : " << it->second[2].name << " Boolean state : " << getwire(vec, it->second[2].name) << endl;
             it->second[0].type = (getwire(vec, it->second[1].name) & getwire(vec, it->second[2].name));
+            cout << "Output : " << it->second[0].name << "  Boolean state : " << getwire(vec, it->second[0].name) << endl;
+            cout << "===============================" << endl;
         }
-        else if (it->first == "OR2" ||it->first == "AND")
+        else if (it->first == "OR2")
         {
+            cout << "OR2 Gate " << endl;
+            cout << "Inputs : \n"
+                 << "first : " << it->second[1].name << " Boolean state : " << getwire(vec, it->second[1].name) << endl;
+            cout << "Second : " << it->second[2].name << " Boolean state : " << getwire(vec, it->second[2].name) << endl;
             it->second[0].type = (getwire(vec, it->second[1].name) | getwire(vec, it->second[2].name));
+            cout << "Output : " << it->second[0].name << "  Boolean state : " << getwire(vec, it->second[0].name) << endl;
+            cout << "===============================" << endl;
         }
         else if (it->first == "NAND2")
         {
-            cout<<"the output: "<<it->second[0].name<<" the input: "<<it->second[1].name<<it->second[2].name<<endl;
-            cout<<"the values are: "<< getwire(vec, it->second[1].name)<< " " <<getwire(vec, it->second[2].name)<<endl;
-            cout<<getwire(vec, it->second[1].name)<<" "<<getwire(vec, it->second[2].name)<<endl;
-            it->second[0].type = !((getwire(vec, it->second[1].name)) & (getwire(vec, it->second[2].name)));
-            cout<<it->second[0].name<<endl;
+            cout << "NAND2 Gate " << endl;
+            cout << "Inputs : \n"
+                 << "first : " << it->second[1].name << " Boolean state : " << getwire(vec, it->second[1].name) << endl;
+            cout << "Second : " << it->second[2].name << " Boolean state : " << getwire(vec, it->second[2].name) << endl;
+            it->second[0].type = !(getwire(vec, it->second[1].name) & getwire(vec, it->second[2].name));
+            cout << "Output : " << it->second[0].name << "  Boolean state : " << getwire(vec, it->second[0].name) << endl;
+            cout << "===============================" << endl;
         }
         else if (it->first == "NOR2")
         {
-            it->second[0].type = !(getwire(vec, it->second[1].name) | getwire(vec, it->second[2].name));
+            cout << "NOR2 Gate " << endl;
+            cout << "Inputs : \n"
+                 << "first : " << it->second[1].name << " Boolean state : " << getwire(vec, it->second[1].name) << endl;
+            cout << "Second : " << it->second[2].name << " Boolean state : " << getwire(vec, it->second[2].name) << endl;
+            it->second[0].type = !(getwire(vec, it->second[1].name) || getwire(vec, it->second[2].name));
+            cout << "Output : " << it->second[0].name << "  Boolean state : " << getwire(vec, it->second[0].name) << endl;
+            cout << "===============================" << endl;
         }
         else if (it->first == "XOR2")
-        {   cout<<"ay 7aga "<<it->second[1].name<<" "<<it->second[2].name<<endl;
-            cout<<"the inputs: "<<getwire(vec, it->second[1].name)<<"  "<<getwire(vec, it->second[2].name)<<endl;
+        {
+            cout << "XOR2 Gate " << endl;
+            cout << "Inputs : \n"
+                 << "first : " << it->second[1].name << " Boolean state : " << getwire(vec, it->second[1].name) << endl;
+            cout << "Second : " << it->second[2].name << " Boolean state : " << getwire(vec, it->second[2].name) << endl;
             it->second[0].type = (getwire(vec, it->second[1].name) & (!getwire(vec, it->second[2].name))) | (!getwire(vec, it->second[1].name) & getwire(vec, it->second[2].name));
+            cout << "Output : " << it->second[0].name << "  Boolean state : " << getwire(vec, it->second[0].name) << endl;
+            cout << "===============================" << endl;
         }
         else if (it->first == "AND3")
         {
+            cout << "AND3 Gate " << endl;
+            cout << "Inputs : \n"
+                 << "first : " << it->second[1].name << " Boolean state : " << getwire(vec, it->second[1].name) << endl;
+            cout << "Second : " << it->second[2].name << " Boolean state : " << getwire(vec, it->second[2].name) << endl;
+            cout << "Third : " << it->second[3].name << " Boolean state : " << getwire(vec, it->second[3].name) << endl;
             it->second[0].type = getwire(vec, it->second[1].name) & (getwire(vec, it->second[2].name) & getwire(vec, it->second[3].name));
+            cout << "Output : " << it->second[0].name << "  Boolean state : " << getwire(vec, it->second[3].name) << endl;
+            cout << "===============================" << endl;
         }
         else if (it->first == "OR3")
         {
-            cout << getwire(vec, it->second[1].name) << "   " << getwire(vec, it->second[2].name) << "  " << getwire(vec, it->second[3].name) << endl;
+            cout << "OR3 Gate " << endl;
+            cout << "Inputs : \n"
+                 << "first : " << it->second[1].name << " Boolean state : " << getwire(vec, it->second[1].name) << endl;
+            cout << "Second : " << it->second[2].name << " Boolean state : " << getwire(vec, it->second[2].name) << endl;
+            cout << "Third : " << it->second[3].name << " Boolean state : " << getwire(vec, it->second[3].name) << endl;
             it->second[0].type = getwire(vec, it->second[1].name) | (getwire(vec, it->second[2].name) | getwire(vec, it->second[3].name));
+            cout << "Output : " << it->second[0].name << "  Boolean state : " << getwire(vec, it->second[0].name) << endl;
+            cout << "===============================" << endl;
         }
         else if (it->first == "NAND3")
         {
+            cout << "NAND3 Gate " << endl;
+            cout << "Inputs : \n"
+                 << "first : " << it->second[1].name << " Boolean state : " << getwire(vec, it->second[1].name) << endl;
+            cout << "Second : " << it->second[2].name << " Boolean state : " << getwire(vec, it->second[2].name) << endl;
+            cout << "Third : " << it->second[3].name << " Boolean state : " << getwire(vec, it->second[3].name) << endl;
             it->second[0].type = !(getwire(vec, it->second[1].name) & (getwire(vec, it->second[2].name) & getwire(vec, it->second[3].name)));
+            cout << "Output : " << it->second[0].name << "  Boolean state : " << getwire(vec, it->second[0].name) << endl;
+            cout << "===============================" << endl;
         }
         else if (it->first == "NOR3")
         {
+            cout << "NOR3 Gate " << endl;
+            cout << "Inputs : \n"
+                 << "first : " << it->second[1].name << " Boolean state : " << getwire(vec, it->second[1].name) << endl;
+            cout << "Second : " << it->second[2].name << " Boolean state : " << getwire(vec, it->second[2].name) << endl;
+            cout << "Third : " << it->second[3].name << " Boolean state : " <<getwire(vec, it->second[3].name) << endl;
             it->second[0].type = !(getwire(vec, it->second[1].name) | (getwire(vec, it->second[2].name) | getwire(vec, it->second[3].name)));
+            cout << "Output : " << it->second[0].name << "  Boolean state : " << getwire(vec, it->second[0].name) << endl;
+            cout << "===============================" << endl;
         }
-        cout << "helllllllllllllllllooooooooooooooooooooooooo" << it->second[0].name << endl;
         output = it->second[0].type;
     }
 
