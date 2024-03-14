@@ -264,7 +264,7 @@ bool getWire(vector<pair<string, vector<wire>>> vec, string wire_name)
     return 0;
 }
 
-int getdelay(vector <pair<string, ector<wire>>> vec, string)
+int getDelay(vector <pair<string, vector<wire>>> vec, string wire_name)
 {
     for (auto it = vec.begin(); it != vec.end(); it++)
     {
@@ -305,8 +305,8 @@ bool computingLogic(vector<pair<string, vector<wire>>> vec, vector<Gates> libCom
                     else
                     {
                         // cout details
-                        cout << getdelay(vec,currentWire.name) << " " << currentWire.name << " " << currentWire.type << endl;
-                        outfile << getdelay(vec,currentWire.delay) << " " << currentWire.name << " " << currentWire.type << endl;
+                       // cout << getDelay(vec,currentWire.name) << " " << currentWire.name << " " << currentWire.type << endl;
+                        outfile << getDelay(vec,currentWire.name) << " " << currentWire.name << " " << currentWire.type << endl;
                         currentWire.setinitial(0);
                     }
                     // outfile << currentWire.delay << " " << currentWire.name << " " << currentWire.type << endl;
@@ -341,7 +341,7 @@ bool computingLogic(vector<pair<string, vector<wire>>> vec, vector<Gates> libCom
                     cout << "error in code" << endl;
                     return NULL;
                 }
-                it->second[0].delay = (getdelay(vec,it->second[1].name)) + libComponents[position].getDelayTime();
+                it->second[0].delay = (getDelay(vec,it->second[1].name)) + libComponents[position].getDelayTime();
                 cout << "===============================" << endl;
             }
             else if (it->first == "AND2")
@@ -357,7 +357,7 @@ bool computingLogic(vector<pair<string, vector<wire>>> vec, vector<Gates> libCom
                     cout << "error in code" << endl;
                     return NULL;
                 }
-                it->second[0].delay = max(getdelay(vec,it->second[2].name), getdelay(vec,it->second[1].name)) + libComponents[position].getDelayTime();
+                it->second[0].delay = max(getDelay(vec,it->second[2].name), getDelay(vec,it->second[1].name)) + libComponents[position].getDelayTime();
                 cout << "===============================" << endl;
             }
             else if (it->first == "OR2")
@@ -368,7 +368,7 @@ bool computingLogic(vector<pair<string, vector<wire>>> vec, vector<Gates> libCom
                 cout << "Second : " << it->second[2].name << " Boolean state : " << getWire(vec, it->second[2].name) << endl;
                 it->second[0].type = (getWire(vec, it->second[1].name) | getWire(vec, it->second[2].name));
                 cout << "Output : " << it->second[0].name << "  Boolean state : " << getWire(vec, it->second[0].name) << endl;
-                it->second[0].delay = min(getdelay(vec,it->second[2].name), getdelay(vec,it->second[1].name)) + libComponents[position].getDelayTime();
+                it->second[0].delay = min(getDelay(vec,it->second[2].name), getDelay(vec,it->second[1].name)) + libComponents[position].getDelayTime();
                 cout << "===============================" << endl;
             }
             else if (it->first == "NAND2")
@@ -379,7 +379,7 @@ bool computingLogic(vector<pair<string, vector<wire>>> vec, vector<Gates> libCom
                 cout << "Second : " << it->second[2].name << " Boolean state : " << getWire(vec, it->second[2].name) << endl;
                 it->second[0].type = !(getWire(vec, it->second[1].name) & getWire(vec, it->second[2].name));
                 cout << "Output : " << it->second[0].name << "  Boolean state : " << getWire(vec, it->second[0].name) << endl;
-                it->second[0].delay = max(getdelay(vec,it->second[2].name), getdelay(vec,it->second[1].name)) + libComponents[position].getDelayTime();
+                it->second[0].delay = max(getDelay(vec,it->second[2].name), getDelay(vec,it->second[1].name)) + libComponents[position].getDelayTime();
                 cout << "===============================" << endl;
             }
             else if (it->first == "NOR2")
@@ -390,7 +390,7 @@ bool computingLogic(vector<pair<string, vector<wire>>> vec, vector<Gates> libCom
                 cout << "Second : " << it->second[2].name << " Boolean state : " << getWire(vec, it->second[2].name) << endl;
                 it->second[0].type = !(getWire(vec, it->second[1].name) || getWire(vec, it->second[2].name));
                 cout << "Output : " << it->second[0].name << "  Boolean state : " << getWire(vec, it->second[0].name) << endl;
-                it->second[0].delay = min(getdelay(vec,it->second[2].name), getdelay(vec,it->second[1].name)) + libComponents[position].getDelayTime();
+                it->second[0].delay = min(getDelay(vec,it->second[2].name), getDelay(vec,it->second[1].name)) + libComponents[position].getDelayTime();
                 cout << "===============================" << endl;
             }
             else if (it->first == "XOR2")
@@ -401,7 +401,7 @@ bool computingLogic(vector<pair<string, vector<wire>>> vec, vector<Gates> libCom
                 cout << "Second : " << it->second[2].name << " Boolean state : " << getWire(vec, it->second[2].name) << endl;
                 it->second[0].type = (getWire(vec, it->second[1].name) & (!getWire(vec, it->second[2].name))) | (!getWire(vec, it->second[1].name) & getWire(vec, it->second[2].name));
                 cout << "Output : " << it->second[0].name << "  Boolean state : " << getWire(vec, it->second[0].name) << endl;
-                it->second[0].delay = max(getdelay(vec,it->second[2].name), getdelay(vec,it->second[1].name)) + libComponents[position].getDelayTime();
+                it->second[0].delay = max(getDelay(vec,it->second[2].name), getDelay(vec,it->second[1].name)) + libComponents[position].getDelayTime();
                 cout << "===============================" << endl;
             }
             else if (it->first == "AND3")
@@ -413,7 +413,7 @@ bool computingLogic(vector<pair<string, vector<wire>>> vec, vector<Gates> libCom
                 cout << "Third : " << it->second[3].name << " Boolean state : " << getWire(vec, it->second[3].name) << endl;
                 it->second[0].type = getWire(vec, it->second[1].name) & (getWire(vec, it->second[2].name) & getWire(vec, it->second[3].name));
                 cout << "Output : " << it->second[0].name << "  Boolean state : " << getWire(vec, it->second[3].name) << endl;
-                it->second[0].delay = max(it->second[2].delay, it->second[1].delay, it->second[3].delay) + libComponents[position].getDelayTime();
+                //it->second[0].delay = max(it->second[2].delay, it->second[1].delay, it->second[3].delay) + libComponents[position].getDelayTime();
                 cout << "===============================" << endl;
             }
             else if (it->first == "OR3")
@@ -425,7 +425,7 @@ bool computingLogic(vector<pair<string, vector<wire>>> vec, vector<Gates> libCom
                 cout << "Third : " << it->second[3].name << " Boolean state : " << getWire(vec, it->second[3].name) << endl;
                 it->second[0].type = getWire(vec, it->second[1].name) | (getWire(vec, it->second[2].name) | getWire(vec, it->second[3].name));
                 cout << "Output : " << it->second[0].name << "  Boolean state : " << getWire(vec, it->second[0].name) << endl;
-                it->second[0].delay = min(it->second[2].delay, it->second[1].delay, it->second[3].delay) + libComponents[position].getDelayTime();
+                //it->second[0].delay = min(it->second[2].delay, it->second[1].delay, it->second[3].delay) + libComponents[position].getDelayTime();
                 cout << "===============================" << endl;
             }
             else if (it->first == "NAND3")
@@ -437,7 +437,7 @@ bool computingLogic(vector<pair<string, vector<wire>>> vec, vector<Gates> libCom
                 cout << "Third : " << it->second[3].name << " Boolean state : " << getWire(vec, it->second[3].name) << endl;
                 it->second[0].type = !(getWire(vec, it->second[1].name) & (getWire(vec, it->second[2].name) & getWire(vec, it->second[3].name)));
                 cout << "Output : " << it->second[0].name << "  Boolean state : " << getWire(vec, it->second[0].name) << endl;
-                it->second[0].delay = min(it->second[2].delay, it->second[1].delay, it->second[3].delay) + libComponents[position].getDelayTime();
+                //it->second[0].delay = min(it->second[2].delay, it->second[1].delay, it->second[3].delay) + libComponents[position].getDelayTime();
                 cout << "===============================" << endl;
             }
             else if (it->first == "NOR3")
@@ -473,11 +473,11 @@ bool computingLogic(vector<pair<string, vector<wire>>> vec, vector<Gates> libCom
 int main()
 {
     vector<Gates> libComponents = parseLibraryFile("Tests/libFile.lib");
-    vector<Stimuli> stimuli = parseStimuliFile("Tests/TestCircuit4/stimFileCirc4.stim");
+    vector<Stimuli> stimuli = parseStimuliFile("Tests/TestCircuit1/stimFileCirc1.stim");
     vector<pair<string, vector<wire>>> mp;
     int i = 0;
-    parseCircuitFile("Tests/TestCircuit4/testCircuit4.cir", mp, stimuli);
-    ofstream outfile("Tests/TestCircuit4/outputSimulation4.sim");
+    parseCircuitFile("Tests/TestCircuit1/testCircuit1.cir", mp, stimuli);
+    ofstream outfile("Tests/TestCircuit1/outputSimulation1.sim");
     if (!outfile.is_open())
     {
         cerr << "Error opening output file" << endl;
