@@ -279,7 +279,7 @@ bool computingLogic(vector<pair<string, vector<wire>>> vec, vector<Gates> libCom
 
                 if (elapsedTime >= currentWire.delay)
                 {
-                    if (currentWire.getinitial() == currentWire.type)
+                    if (currentWire.getinitial() != currentWire.type)
                     {
                         currentWire.setinitial(1);
                         // cout details
@@ -287,9 +287,12 @@ bool computingLogic(vector<pair<string, vector<wire>>> vec, vector<Gates> libCom
                     else
                     {
                         //cout details
-                        //cout << currentWire.delay << " " << currentWire.name << " " << currentWire.type << endl;
+                        cout << currentWire.delay << " " << currentWire.name << " " << currentWire.type << endl;
+                        outfile << currentWire.delay << " " << currentWire.name << " " << currentWire.type << endl;
+                        currentWire.setinitial(0);
+
                     }
-                    outfile << currentWire.delay << " " << currentWire.name << " " << currentWire.type << endl;
+                    // outfile << currentWire.delay << " " << currentWire.name << " " << currentWire.type << endl;
                     currentWire.settype(1 - currentWire.type);
                     currentWire.delay += currentWire.delay; // Increment delay for the next cycle
                 }
