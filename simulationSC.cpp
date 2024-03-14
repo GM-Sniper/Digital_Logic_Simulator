@@ -2,11 +2,9 @@
 #include <fstream>
 #include <string>
 #include <vector>
-#include <algorithm>
 #include <sstream>
 #include <map>
 #include <cctype>
-#include "Circuit Classes/Circuits.h"
 #include "Circuit Classes/Stimuli.h"
 #include "Circuit Classes/Gates.h"
 
@@ -19,7 +17,7 @@ struct wire
 
     wire(string n, bool t, int d = 0) : name(n), type(t), delay(d) {}
 };
-vector<pair<string, vector<wire>>> mp;
+
 vector<Gates> parseLibraryFile(const string &filename)
 {
     vector<Gates> components;
@@ -49,7 +47,7 @@ vector<Gates> parseLibraryFile(const string &filename)
         if (outputExpression.at(outputExpression.length() - 1) == ',')
             outputExpression.erase(outputExpression.length() - 1, 1); // Removing the included comma in the outputExpression if necessery
 
-        // components.push_back({name, numInputs, outputExpression, delayPs});
+        components.push_back({name, numInputs, outputExpression, delayPs});
     }
     return components;
 }
@@ -101,11 +99,8 @@ vector<Stimuli> parseStimuliFile(const string &filename)
     return stimuli;
 }
 
-vector<CircuitComponent> parseCircuitFile(const string &filename, const string &filenameStimuli)
+void parseCircuitFile(const string &filename, vector<pair<string, vector<wire>>>& mp)
 {
-    vector<CircuitComponent> components;
-    vector<Stimuli> stimuli = parseStimuliFile(filenameStimuli);
-    vector<Stimuli> inputsWithData;
     string input;
     vector<string> inputs2;
 
@@ -113,7 +108,7 @@ vector<CircuitComponent> parseCircuitFile(const string &filename, const string &
     if (!file.is_open())
     {
         cerr << "Error opening file: " << filename << endl;
-        return components;
+        return;
     }
 
     string line;
@@ -144,25 +139,33 @@ vector<CircuitComponent> parseCircuitFile(const string &filename, const string &
             {
 
                 vector<wire> vec;
-                // Parse each component line
+                // Parse each component line into a vector pair
                 // Example: G0, NOT, w1, C
                 istringstream iss(line);
                 string name, output;
                 string type;
-
-                // vector<Stimuli> inputs;
                 vector<wire> outputs;
                 if (line.empty() || line[0]==' ') // Skip lines that are empty or start with a whitespace character
                 continue;
                 if (iss >> name >> type >> output)
-                { // wire(output,0);
-
-                    type.erase(type.length() - 1, 1);
-                    output.erase(output.length() - 1, 1);
+                {
+                    if (type.at(type.length() - 1) == ',')
+                    {
+                        type.erase(type.length() - 1, 1);
+                    }
+                    if(type.at(0)==' ')
+                    {
+                        type.erase(0, 1);
+                    }
+                    if (output.at(output.length() - 1) == ',')
+                    {
+                        output.erase(output.length() - 1, 1);
+                    }
                     if(output.at(0)==' ')
-                        {
-                            input.erase(0, 1);
-                        }
+                    {
+                        output.erase(0, 1);
+                    }
+
                     vec.push_back(wire(output, 0));
                     // assume that the output is one char
                     // Parse input signals for the component
@@ -188,31 +191,16 @@ vector<CircuitComponent> parseCircuitFile(const string &filename, const string &
                         }
 
                         vec.push_back(wire(input, 0));
-                        // Create Stimuli object for each input and add it to a vector
-                        // Stimuli stimuli(0, input[0], false); // Set initial time stamp to 0 and logic value to false
-                        // You might want to validate and process the input further as needed
-                        // inputs.push_back(stimuli); // this has a problem becasue only the first inputs has the time delay
-                        //, so for the others you will need to compute it
                     }
 
                     inputs2.push_back(input);
-                    // for(int i=0;i<input.length();i++)
-                    // {
-                    //     if(input)
-                    //      Stimuli sti(0,input[i],false);
-                    //     outputs.push_back(sti);
-                    // }
-                    // Create Gates object for the component type
-                    // Gates gate(name, type , 0, "", 0); // You might need to provide appropriate values here
-                    // Create CircuitComponent object and add it to the vector
-                    // components.push_back(CircuitComponent(name, gate, output, inputs));
                 }
                 mp.push_back(make_pair(type, vec));
             }
         }
     }
 
-    return components;
+    return;
 }
 bool getwire(vector<pair<string, vector<wire>>> vec, string wire_name)
 {
@@ -245,7 +233,7 @@ bool function(vector<pair<string, vector<wire>>> vec)
         {
             cout << "AND2 Gate " << endl;
             cout << "Inputs : \n"
-                 << "first : " << it->second[1].name << " Boolean state : " << getwire(vec, it->second[1].name) << endl;
+                 << "First : " << it->second[1].name << " Boolean state : " << getwire(vec, it->second[1].name) << endl;
             cout << "Second : " << it->second[2].name << " Boolean state : " << getwire(vec, it->second[2].name) << endl;
             it->second[0].type = (getwire(vec, it->second[1].name) & getwire(vec, it->second[2].name));
             cout << "Output : " << it->second[0].name << "  Boolean state : " << getwire(vec, it->second[0].name) << endl;
@@ -255,7 +243,7 @@ bool function(vector<pair<string, vector<wire>>> vec)
         {
             cout << "OR2 Gate " << endl;
             cout << "Inputs : \n"
-                 << "first : " << it->second[1].name << " Boolean state : " << getwire(vec, it->second[1].name) << endl;
+                 << "First : " << it->second[1].name << " Boolean state : " << getwire(vec, it->second[1].name) << endl;
             cout << "Second : " << it->second[2].name << " Boolean state : " << getwire(vec, it->second[2].name) << endl;
             it->second[0].type = (getwire(vec, it->second[1].name) | getwire(vec, it->second[2].name));
             cout << "Output : " << it->second[0].name << "  Boolean state : " << getwire(vec, it->second[0].name) << endl;
@@ -265,7 +253,7 @@ bool function(vector<pair<string, vector<wire>>> vec)
         {
             cout << "NAND2 Gate " << endl;
             cout << "Inputs : \n"
-                 << "first : " << it->second[1].name << " Boolean state : " << getwire(vec, it->second[1].name) << endl;
+                 << "First : " << it->second[1].name << " Boolean state : " << getwire(vec, it->second[1].name) << endl;
             cout << "Second : " << it->second[2].name << " Boolean state : " << getwire(vec, it->second[2].name) << endl;
             it->second[0].type = !(getwire(vec, it->second[1].name) & getwire(vec, it->second[2].name));
             cout << "Output : " << it->second[0].name << "  Boolean state : " << getwire(vec, it->second[0].name) << endl;
@@ -275,7 +263,7 @@ bool function(vector<pair<string, vector<wire>>> vec)
         {
             cout << "NOR2 Gate " << endl;
             cout << "Inputs : \n"
-                 << "first : " << it->second[1].name << " Boolean state : " << getwire(vec, it->second[1].name) << endl;
+                 << "First : " << it->second[1].name << " Boolean state : " << getwire(vec, it->second[1].name) << endl;
             cout << "Second : " << it->second[2].name << " Boolean state : " << getwire(vec, it->second[2].name) << endl;
             it->second[0].type = !(getwire(vec, it->second[1].name) || getwire(vec, it->second[2].name));
             cout << "Output : " << it->second[0].name << "  Boolean state : " << getwire(vec, it->second[0].name) << endl;
@@ -285,7 +273,7 @@ bool function(vector<pair<string, vector<wire>>> vec)
         {
             cout << "XOR2 Gate " << endl;
             cout << "Inputs : \n"
-                 << "first : " << it->second[1].name << " Boolean state : " << getwire(vec, it->second[1].name) << endl;
+                 << "First : " << it->second[1].name << " Boolean state : " << getwire(vec, it->second[1].name) << endl;
             cout << "Second : " << it->second[2].name << " Boolean state : " << getwire(vec, it->second[2].name) << endl;
             it->second[0].type = (getwire(vec, it->second[1].name) & (!getwire(vec, it->second[2].name))) | (!getwire(vec, it->second[1].name) & getwire(vec, it->second[2].name));
             cout << "Output : " << it->second[0].name << "  Boolean state : " << getwire(vec, it->second[0].name) << endl;
@@ -295,7 +283,7 @@ bool function(vector<pair<string, vector<wire>>> vec)
         {
             cout << "AND3 Gate " << endl;
             cout << "Inputs : \n"
-                 << "first : " << it->second[1].name << " Boolean state : " << getwire(vec, it->second[1].name) << endl;
+                 << "First : " << it->second[1].name << " Boolean state : " << getwire(vec, it->second[1].name) << endl;
             cout << "Second : " << it->second[2].name << " Boolean state : " << getwire(vec, it->second[2].name) << endl;
             cout << "Third : " << it->second[3].name << " Boolean state : " << getwire(vec, it->second[3].name) << endl;
             it->second[0].type = getwire(vec, it->second[1].name) & (getwire(vec, it->second[2].name) & getwire(vec, it->second[3].name));
@@ -306,7 +294,7 @@ bool function(vector<pair<string, vector<wire>>> vec)
         {
             cout << "OR3 Gate " << endl;
             cout << "Inputs : \n"
-                 << "first : " << it->second[1].name << " Boolean state : " << getwire(vec, it->second[1].name) << endl;
+                 << "First : " << it->second[1].name << " Boolean state : " << getwire(vec, it->second[1].name) << endl;
             cout << "Second : " << it->second[2].name << " Boolean state : " << getwire(vec, it->second[2].name) << endl;
             cout << "Third : " << it->second[3].name << " Boolean state : " << getwire(vec, it->second[3].name) << endl;
             it->second[0].type = getwire(vec, it->second[1].name) | (getwire(vec, it->second[2].name) | getwire(vec, it->second[3].name));
@@ -317,7 +305,7 @@ bool function(vector<pair<string, vector<wire>>> vec)
         {
             cout << "NAND3 Gate " << endl;
             cout << "Inputs : \n"
-                 << "first : " << it->second[1].name << " Boolean state : " << getwire(vec, it->second[1].name) << endl;
+                 << "First : " << it->second[1].name << " Boolean state : " << getwire(vec, it->second[1].name) << endl;
             cout << "Second : " << it->second[2].name << " Boolean state : " << getwire(vec, it->second[2].name) << endl;
             cout << "Third : " << it->second[3].name << " Boolean state : " << getwire(vec, it->second[3].name) << endl;
             it->second[0].type = !(getwire(vec, it->second[1].name) & (getwire(vec, it->second[2].name) & getwire(vec, it->second[3].name)));
@@ -328,7 +316,7 @@ bool function(vector<pair<string, vector<wire>>> vec)
         {
             cout << "NOR3 Gate " << endl;
             cout << "Inputs : \n"
-                 << "first : " << it->second[1].name << " Boolean state : " << getwire(vec, it->second[1].name) << endl;
+                 << "First : " << it->second[1].name << " Boolean state : " << getwire(vec, it->second[1].name) << endl;
             cout << "Second : " << it->second[2].name << " Boolean state : " << getwire(vec, it->second[2].name) << endl;
             cout << "Third : " << it->second[3].name << " Boolean state : " <<getwire(vec, it->second[3].name) << endl;
             it->second[0].type = !(getwire(vec, it->second[1].name) | (getwire(vec, it->second[2].name) | getwire(vec, it->second[3].name)));
@@ -342,23 +330,20 @@ bool function(vector<pair<string, vector<wire>>> vec)
 }
 int main()
 {
-    // vector<Gates> components = parseLibraryFile("Tests/libFile.lib");
+    vector<Gates> libComponents = parseLibraryFile("Tests/libFile.lib");
     vector<Stimuli> stimuli = parseStimuliFile("Tests/TestCircuit1/stimFileCir1.stim");
-    /* for(const auto& component : components) {
-         cout << "Component: " << component.getGateName() << " Num Inputs: " << component.getNumOfInputs()
-                   << " Output Expression: " << component.getOutputExpression() << " Delay (ps): " << component.getDelayTime() << endl;
-     }*/
-    vector<CircuitComponent> comps = parseCircuitFile("Tests/TestCircuit4/Circuit4.cir", "Tests/TestCircuit3/stimFileCir3.stim");
-
-    //mp.pop_back();
+    vector<pair<string, vector<wire>>> mp;
+    int i=0;
+    parseCircuitFile("Tests/TestCircuit4/Circuit4.cir",mp);
     for (auto it = mp.begin(); it != mp.end(); it++)
-    {
-        cout << "nn" << it->first << " ";
+    {   
+        cout <<i<<" "<< it->first << " ";
         for (int i = 0; i < it->second.size(); i++)
         {
             cout << it->second[i].name << " ";
         }
         cout << endl;
+        i++;
     }
     cout << function(mp);
 }

@@ -1,7 +1,7 @@
 #include "Gates.h"
 
 // Constructor
-Gates::Gates(string& name,string& type ,int numInputs, string& outputExpression, int delayPs)
+Gates::Gates(string& name,int numInputs, string& outputExpression, int delayPs)
     : gateName(name), numOfInputs(numInputs), outputExpression(outputExpression), timeDelay(delayPs) {}
 Gates::Gates(){}
 // Getters

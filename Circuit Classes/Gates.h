@@ -13,7 +13,7 @@ private:
 
 public:
     // Constructor
-    Gates(string& name, string& type , int numInputs, string& outputExpression, int delayPs);
+    Gates(string& name, int numInputs, string& outputExpression, int delayPs);
     Gates();
     // Getters
     string getGateName() const;
