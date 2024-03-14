@@ -1,4 +1,5 @@
 #include "Stimuli.h"
+using namespace std;
 
 // Constructor
 Stimuli::Stimuli(int timeStamp, string inputs, bool logicValue)

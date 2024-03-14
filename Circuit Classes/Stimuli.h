@@ -3,6 +3,8 @@
 
 #include <string>
 
+using namespace std;
+
 class Stimuli {
 public:
     Stimuli(int timeStamp, string input, bool logicValue);

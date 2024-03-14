@@ -5,6 +5,8 @@
 #include <sstream>
 #include <map>
 #include <cctype>
+#include <chrono>
+#include <thread>
 #include "Circuit Classes/Stimuli.h"
 #include "Circuit Classes/Gates.h"
 
@@ -14,8 +16,20 @@ struct wire
     string name;
     bool type;
     int delay;
-
-    wire(string n, bool t, int d = 0) : name(n), type(t), delay(d) {}
+    int initial;
+    wire(string n, int t, int d=0) : name(n), type(t), delay(d), initial(0) {}
+    void settype(int t)
+    {
+        type = t;
+    }
+    void setinitial(int i)
+    {
+        initial = i;
+    }
+    int getinitial()
+    {
+        return initial;
+    }
 };
 
 vector<Gates> parseLibraryFile(const string &filename)
@@ -66,31 +80,56 @@ vector<Stimuli> parseStimuliFile(const string &filename)
     string line;
     while (getline(file, line))
     {
-        stringstream ss(line);
+        istringstream iss(line);
         string token;
-
-        int timeStamp;
-        string input;
-        bool logicValue;
-
+         if (line.empty() || line[0]==' ') // Skip lines that are empty or start with a whitespace character
+            continue;
         // Parse time stamp
-        getline(ss, token, ',');
-        timeStamp = stoll(token);
-
-        // Parse input
-        getline(ss, token, ',');
-        for (int i = 0; i < token.length(); i++)
+        if (!getline(iss, token, ','))
         {
-            if (token[i] != ' ')
-            {
-                input.push_back(token[i]);
-            }
+            cerr << "Error: Missing timestamp in line: " << line << endl;
+            continue; // Skip to the next line
+        }
+        int timeStamp;
+        try {
+            timeStamp = stoi(token);
+        } catch (...) {
+            cerr << "Error: Invalid timestamp in line: " << line << endl;
+            continue; // Skip to the next line
         }
 
-        // Parse logic value
-        getline(ss, token, ',');
-        logicValue = stoi(token);
+        // Parse input
+        if (!getline(iss, token, ','))
+        {
+            cerr << "Error: Missing input in line: " << line << endl;
+            continue; // Skip to the next line
+        }
+        string input = token;
 
+        // Parse logic value
+        if (!getline(iss, token, ','))
+        {
+            cerr << "Error: Missing logic value in line: " << line << endl;
+            continue; // Skip to the next line
+        }
+        bool logicValue;
+        try {
+            logicValue = stoi(token);
+        } catch (...) {
+            cerr << "Error: Invalid logic value in line: " << line << endl;
+            continue; // Skip to the next line
+        }
+
+        // Validate logic value
+        if (logicValue != 0 && logicValue != 1)
+        {
+            cerr << "Error: Invalid logic value (must be 0 or 1) in line: " << line << endl;
+            continue; // Skip to the next line
+        }
+        if(input.at(0)==' ')
+        {
+            input.erase(0,1);
+        }
         // Add stimulus to the vector
         stimuli.push_back({timeStamp, input, logicValue});
     }
@@ -99,7 +138,9 @@ vector<Stimuli> parseStimuliFile(const string &filename)
     return stimuli;
 }
 
-void parseCircuitFile(const string &filename, vector<pair<string, vector<wire>>>& mp)
+
+
+void parseCircuitFile(const string &filename, vector<pair<string, vector<wire>>>& mp, vector<Stimuli> stimuli)
 {
     string input;
     vector<string> inputs2;
@@ -167,17 +208,6 @@ void parseCircuitFile(const string &filename, vector<pair<string, vector<wire>>>
                     }
 
                     vec.push_back(wire(output, 0));
-                    // assume that the output is one char
-                    // Parse input signals for the component
-                    // we need to change the conspet of inputs and outputs to be inputs,outputs,wires but we will face a problem
-                    // which is (the wires will be outputs and inputs in the same time)
-                    // in order to solve this porblem we can use many approches. For instance we read the data stored and if it matches
-                    // with the data in the input vector, we remove it (we get rid of the inputs)
-                    // then we loop over ......... if it is unique, so it is the ouput, so we store it in other place, then remove it
-                    // after that we will be left with the wires only. However, that is not enough becuase now you do not know which input or wire
-                    // is with who. There are many approaches to solve such a problem, like 2D vector (the first vector will be of the output(wheter it is an out put or wire acts like output))
-                    // then the second vector will be for the (inputs, whether it is inputs or wires acts like inputs)
-                    // or we use a system of commas, like before. (Other ideas can be implemented)
 
                     while (iss >> input)
                     {
@@ -189,11 +219,25 @@ void parseCircuitFile(const string &filename, vector<pair<string, vector<wire>>>
                         {
                             input.erase(0, 1);
                         }
-
-                        vec.push_back(wire(input, 0));
+                        int position=-1;
+                        for(int i=0;i<stimuli.size()-1;i++)
+                        {   cout<<stimuli[i].getInput()<<"//"<<input<<endl;
+                            if(input==stimuli[i].getInput())
+                            {
+                                position=i;
+                            }
+                        }
+                        if(position==-1)
+                        {
+                            vec.push_back(wire(input,0));
+                        }
+                        else{
+                            //cout<<"------------------------"<<stimuli[position].getTimeStamp()<<endl;
+                            vec.push_back(wire(input, 0,stimuli[position].getTimeStamp()));
+                        }
+                        
                     }
 
-                    inputs2.push_back(input);
                 }
                 mp.push_back(make_pair(type, vec));
             }
@@ -202,7 +246,7 @@ void parseCircuitFile(const string &filename, vector<pair<string, vector<wire>>>
 
     return;
 }
-bool getwire(vector<pair<string, vector<wire>>> vec, string wire_name)
+bool getWire(vector<pair<string, vector<wire>>> vec, string wire_name)
 {
     for (auto it = vec.begin(); it != vec.end(); it++)
     {
@@ -216,125 +260,177 @@ bool getwire(vector<pair<string, vector<wire>>> vec, string wire_name)
     }
     return 0;
 }
-bool function(vector<pair<string, vector<wire>>> vec)
+bool computingLogic(vector<pair<string, vector<wire>>> vec, vector<Gates> libComponents,vector<Stimuli> stimuli,ofstream &outfile)
 {
+    
+    auto startTime = std::chrono::steady_clock::now();
     bool output = false;
+
+    while (true)
+    {
+        auto currentTime = std::chrono::steady_clock::now();
+        auto elapsedTime = std::chrono::duration_cast<std::chrono::milliseconds>(currentTime - startTime).count();
+
+        for (auto it = vec.begin(); it != vec.end(); it++)
+        {
+            for (int i = 0; i < it->second.size(); i++)
+            {
+                wire& currentWire = it->second[i];
+
+                if (elapsedTime >= currentWire.delay)
+                {
+                    if (currentWire.getinitial() == 0)
+                    {
+                        currentWire.setinitial(1);
+                    }
+                    else
+                    {
+                        //cout << currentWire.delay << " " << currentWire.name << " " << currentWire.type << endl;
+                    }
+                    outfile << currentWire.delay << " " << currentWire.name << " " << currentWire.type << endl;
+                    currentWire.settype(1 - currentWire.type);
+                    currentWire.delay += currentWire.delay; // Increment delay for the next cycle
+                }
+
+                if (currentWire.type == 1)
+                    output = true;
+            }
+        }
     for (auto it = vec.begin(); it != vec.end(); it++)
     {
         if (it->first == "NOT")
         {
             cout << "Not Gate " << endl;
-            cout << "Input : " << it->second[1].name << "  Boolean state : " << getwire(vec, it->second[1].name) << endl;
+            cout << "Input : " << it->second[1].name << "  Boolean state : " << getWire(vec, it->second[1].name) << endl;
             it->second[0].type = !(it->second[1].type);
-            cout << "Output : " << it->second[0].name << "  Boolean state : " << getwire(vec, it->second[0].name) << endl;
+            cout << "Output : " << it->second[0].name << "  Boolean state : " << getWire(vec, it->second[0].name) << endl;
             cout << "===============================" << endl;
         }
         else if (it->first == "AND2")
         {
             cout << "AND2 Gate " << endl;
             cout << "Inputs : \n"
-                 << "First : " << it->second[1].name << " Boolean state : " << getwire(vec, it->second[1].name) << endl;
-            cout << "Second : " << it->second[2].name << " Boolean state : " << getwire(vec, it->second[2].name) << endl;
-            it->second[0].type = (getwire(vec, it->second[1].name) & getwire(vec, it->second[2].name));
-            cout << "Output : " << it->second[0].name << "  Boolean state : " << getwire(vec, it->second[0].name) << endl;
+                 << "First : " << it->second[1].name << " Boolean state : " << getWire(vec, it->second[1].name) << endl;
+            cout << "Second : " << it->second[2].name << " Boolean state : " << getWire(vec, it->second[2].name) << endl;
+            it->second[0].type = (getWire(vec, it->second[1].name) & getWire(vec, it->second[2].name));
+            cout << "Output : " << it->second[0].name << "  Boolean state : " << getWire(vec, it->second[0].name) << endl;
             cout << "===============================" << endl;
         }
         else if (it->first == "OR2")
         {
             cout << "OR2 Gate " << endl;
             cout << "Inputs : \n"
-                 << "First : " << it->second[1].name << " Boolean state : " << getwire(vec, it->second[1].name) << endl;
-            cout << "Second : " << it->second[2].name << " Boolean state : " << getwire(vec, it->second[2].name) << endl;
-            it->second[0].type = (getwire(vec, it->second[1].name) | getwire(vec, it->second[2].name));
-            cout << "Output : " << it->second[0].name << "  Boolean state : " << getwire(vec, it->second[0].name) << endl;
+                 << "First : " << it->second[1].name << " Boolean state : " << getWire(vec, it->second[1].name) << endl;
+            cout << "Second : " << it->second[2].name << " Boolean state : " << getWire(vec, it->second[2].name) << endl;
+            it->second[0].type = (getWire(vec, it->second[1].name) | getWire(vec, it->second[2].name));
+            cout << "Output : " << it->second[0].name << "  Boolean state : " << getWire(vec, it->second[0].name) << endl;
             cout << "===============================" << endl;
         }
         else if (it->first == "NAND2")
         {
             cout << "NAND2 Gate " << endl;
             cout << "Inputs : \n"
-                 << "First : " << it->second[1].name << " Boolean state : " << getwire(vec, it->second[1].name) << endl;
-            cout << "Second : " << it->second[2].name << " Boolean state : " << getwire(vec, it->second[2].name) << endl;
-            it->second[0].type = !(getwire(vec, it->second[1].name) & getwire(vec, it->second[2].name));
-            cout << "Output : " << it->second[0].name << "  Boolean state : " << getwire(vec, it->second[0].name) << endl;
+                 << "First : " << it->second[1].name << " Boolean state : " << getWire(vec, it->second[1].name) << endl;
+            cout << "Second : " << it->second[2].name << " Boolean state : " << getWire(vec, it->second[2].name) << endl;
+            it->second[0].type = !(getWire(vec, it->second[1].name) & getWire(vec, it->second[2].name));
+            cout << "Output : " << it->second[0].name << "  Boolean state : " << getWire(vec, it->second[0].name) << endl;
             cout << "===============================" << endl;
         }
         else if (it->first == "NOR2")
         {
             cout << "NOR2 Gate " << endl;
             cout << "Inputs : \n"
-                 << "First : " << it->second[1].name << " Boolean state : " << getwire(vec, it->second[1].name) << endl;
-            cout << "Second : " << it->second[2].name << " Boolean state : " << getwire(vec, it->second[2].name) << endl;
-            it->second[0].type = !(getwire(vec, it->second[1].name) || getwire(vec, it->second[2].name));
-            cout << "Output : " << it->second[0].name << "  Boolean state : " << getwire(vec, it->second[0].name) << endl;
+                 << "First : " << it->second[1].name << " Boolean state : " << getWire(vec, it->second[1].name) << endl;
+            cout << "Second : " << it->second[2].name << " Boolean state : " << getWire(vec, it->second[2].name) << endl;
+            it->second[0].type = !(getWire(vec, it->second[1].name) || getWire(vec, it->second[2].name));
+            cout << "Output : " << it->second[0].name << "  Boolean state : " << getWire(vec, it->second[0].name) << endl;
             cout << "===============================" << endl;
         }
         else if (it->first == "XOR2")
         {
             cout << "XOR2 Gate " << endl;
             cout << "Inputs : \n"
-                 << "First : " << it->second[1].name << " Boolean state : " << getwire(vec, it->second[1].name) << endl;
-            cout << "Second : " << it->second[2].name << " Boolean state : " << getwire(vec, it->second[2].name) << endl;
-            it->second[0].type = (getwire(vec, it->second[1].name) & (!getwire(vec, it->second[2].name))) | (!getwire(vec, it->second[1].name) & getwire(vec, it->second[2].name));
-            cout << "Output : " << it->second[0].name << "  Boolean state : " << getwire(vec, it->second[0].name) << endl;
+                 << "First : " << it->second[1].name << " Boolean state : " << getWire(vec, it->second[1].name) << endl;
+            cout << "Second : " << it->second[2].name << " Boolean state : " << getWire(vec, it->second[2].name) << endl;
+            it->second[0].type = (getWire(vec, it->second[1].name) & (!getWire(vec, it->second[2].name))) | (!getWire(vec, it->second[1].name) & getWire(vec, it->second[2].name));
+            cout << "Output : " << it->second[0].name << "  Boolean state : " << getWire(vec, it->second[0].name) << endl;
             cout << "===============================" << endl;
         }
         else if (it->first == "AND3")
         {
             cout << "AND3 Gate " << endl;
             cout << "Inputs : \n"
-                 << "First : " << it->second[1].name << " Boolean state : " << getwire(vec, it->second[1].name) << endl;
-            cout << "Second : " << it->second[2].name << " Boolean state : " << getwire(vec, it->second[2].name) << endl;
-            cout << "Third : " << it->second[3].name << " Boolean state : " << getwire(vec, it->second[3].name) << endl;
-            it->second[0].type = getwire(vec, it->second[1].name) & (getwire(vec, it->second[2].name) & getwire(vec, it->second[3].name));
-            cout << "Output : " << it->second[0].name << "  Boolean state : " << getwire(vec, it->second[3].name) << endl;
+                 << "First : " << it->second[1].name << " Boolean state : " << getWire(vec, it->second[1].name) << endl;
+            cout << "Second : " << it->second[2].name << " Boolean state : " << getWire(vec, it->second[2].name) << endl;
+            cout << "Third : " << it->second[3].name << " Boolean state : " << getWire(vec, it->second[3].name) << endl;
+            it->second[0].type = getWire(vec, it->second[1].name) & (getWire(vec, it->second[2].name) & getWire(vec, it->second[3].name));
+            cout << "Output : " << it->second[0].name << "  Boolean state : " << getWire(vec, it->second[3].name) << endl;
             cout << "===============================" << endl;
         }
         else if (it->first == "OR3")
         {
             cout << "OR3 Gate " << endl;
             cout << "Inputs : \n"
-                 << "First : " << it->second[1].name << " Boolean state : " << getwire(vec, it->second[1].name) << endl;
-            cout << "Second : " << it->second[2].name << " Boolean state : " << getwire(vec, it->second[2].name) << endl;
-            cout << "Third : " << it->second[3].name << " Boolean state : " << getwire(vec, it->second[3].name) << endl;
-            it->second[0].type = getwire(vec, it->second[1].name) | (getwire(vec, it->second[2].name) | getwire(vec, it->second[3].name));
-            cout << "Output : " << it->second[0].name << "  Boolean state : " << getwire(vec, it->second[0].name) << endl;
+                 << "First : " << it->second[1].name << " Boolean state : " << getWire(vec, it->second[1].name) << endl;
+            cout << "Second : " << it->second[2].name << " Boolean state : " << getWire(vec, it->second[2].name) << endl;
+            cout << "Third : " << it->second[3].name << " Boolean state : " << getWire(vec, it->second[3].name) << endl;
+            it->second[0].type = getWire(vec, it->second[1].name) | (getWire(vec, it->second[2].name) | getWire(vec, it->second[3].name));
+            cout << "Output : " << it->second[0].name << "  Boolean state : " << getWire(vec, it->second[0].name) << endl;
             cout << "===============================" << endl;
         }
         else if (it->first == "NAND3")
         {
             cout << "NAND3 Gate " << endl;
             cout << "Inputs : \n"
-                 << "First : " << it->second[1].name << " Boolean state : " << getwire(vec, it->second[1].name) << endl;
-            cout << "Second : " << it->second[2].name << " Boolean state : " << getwire(vec, it->second[2].name) << endl;
-            cout << "Third : " << it->second[3].name << " Boolean state : " << getwire(vec, it->second[3].name) << endl;
-            it->second[0].type = !(getwire(vec, it->second[1].name) & (getwire(vec, it->second[2].name) & getwire(vec, it->second[3].name)));
-            cout << "Output : " << it->second[0].name << "  Boolean state : " << getwire(vec, it->second[0].name) << endl;
+                 << "First : " << it->second[1].name << " Boolean state : " << getWire(vec, it->second[1].name) << endl;
+            cout << "Second : " << it->second[2].name << " Boolean state : " << getWire(vec, it->second[2].name) << endl;
+            cout << "Third : " << it->second[3].name << " Boolean state : " << getWire(vec, it->second[3].name) << endl;
+            it->second[0].type = !(getWire(vec, it->second[1].name) & (getWire(vec, it->second[2].name) & getWire(vec, it->second[3].name)));
+            cout << "Output : " << it->second[0].name << "  Boolean state : " << getWire(vec, it->second[0].name) << endl;
             cout << "===============================" << endl;
         }
         else if (it->first == "NOR3")
         {
             cout << "NOR3 Gate " << endl;
             cout << "Inputs : \n"
-                 << "First : " << it->second[1].name << " Boolean state : " << getwire(vec, it->second[1].name) << endl;
-            cout << "Second : " << it->second[2].name << " Boolean state : " << getwire(vec, it->second[2].name) << endl;
-            cout << "Third : " << it->second[3].name << " Boolean state : " <<getwire(vec, it->second[3].name) << endl;
-            it->second[0].type = !(getwire(vec, it->second[1].name) | (getwire(vec, it->second[2].name) | getwire(vec, it->second[3].name)));
-            cout << "Output : " << it->second[0].name << "  Boolean state : " << getwire(vec, it->second[0].name) << endl;
+                 << "First : " << it->second[1].name << " Boolean state : " << getWire(vec, it->second[1].name) << endl;
+            cout << "Second : " << it->second[2].name << " Boolean state : " << getWire(vec, it->second[2].name) << endl;
+            cout << "Third : " << it->second[3].name << " Boolean state : " <<getWire(vec, it->second[3].name) << endl;
+            it->second[0].type = !(getWire(vec, it->second[1].name) | (getWire(vec, it->second[2].name) | getWire(vec, it->second[3].name)));
+            cout << "Output : " << it->second[0].name << "  Boolean state : " << getWire(vec, it->second[0].name) << endl;
             cout << "===============================" << endl;
         }
         output = it->second[0].type;
     }
+    // Output wire status every 100 milliseconds
+        if (elapsedTime % 100 == 0) {
+            //cout << "Wire status: " << output << endl;
+        }
 
+        // Check if the duration has elapsed
+        if (elapsedTime >= 1 * 1000)
+        {
+            break;
+        }
+
+        // Sleep for a short duration to avoid busy-waiting
+        std::this_thread::sleep_for(std::chrono::milliseconds(50));
+    }
     return output;
 }
 int main()
 {
     vector<Gates> libComponents = parseLibraryFile("Tests/libFile.lib");
-    vector<Stimuli> stimuli = parseStimuliFile("Tests/TestCircuit1/stimFileCir1.stim");
+    vector<Stimuli> stimuli= parseStimuliFile("Tests/TestCircuit4/stimFileCirc4.stim");
     vector<pair<string, vector<wire>>> mp;
     int i=0;
-    parseCircuitFile("Tests/TestCircuit4/Circuit4.cir",mp);
+    parseCircuitFile("Tests/TestCircuit4/testCircuit4.cir",mp,stimuli);
+    ofstream outfile("Tests/TestCircuit4/outputSimulation4.sim");
+    if (!outfile.is_open())
+    {
+        cerr << "Error opening output file" << endl;
+        return 1;
+    }
     for (auto it = mp.begin(); it != mp.end(); it++)
     {   
         cout <<i<<" "<< it->first << " ";
@@ -345,5 +441,6 @@ int main()
         cout << endl;
         i++;
     }
-    cout << function(mp);
+    cout<< computingLogic(mp,libComponents,stimuli,outfile);
+    outfile.close();
 }

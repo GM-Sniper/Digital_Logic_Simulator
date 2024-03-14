@@ -124,7 +124,7 @@ bool function(vector<pair<string, vector<wire>>> vec, int duration)
 
         // Output wire status every 100 milliseconds
         if (elapsedTime % 100 == 0) {
-            cout << "Wire status: " << output << endl;
+            //cout << "Wire status: " << output << endl;
         }
 
         // Check if the duration has elapsed
@@ -134,7 +134,7 @@ bool function(vector<pair<string, vector<wire>>> vec, int duration)
         }
 
         // Sleep for a short duration to avoid busy-waiting
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        std::this_thread::sleep_for(std::chrono::milliseconds(50));
     }
 
     return output;
