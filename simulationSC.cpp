@@ -17,7 +17,7 @@ struct wire
     bool type;
     int delay;
     int initial;
-    wire(string n, int t, int d=0) : name(n), type(t), delay(d), initial(0) {}
+    wire(string n, int t, int d=0) : name(n), type(t), delay(d), initial(1) {}
     void settype(int t)
     {
         type = t;
@@ -279,12 +279,14 @@ bool computingLogic(vector<pair<string, vector<wire>>> vec, vector<Gates> libCom
 
                 if (elapsedTime >= currentWire.delay)
                 {
-                    if (currentWire.getinitial() == 0)
+                    if (currentWire.getinitial() == currentWire.type)
                     {
                         currentWire.setinitial(1);
+                        // cout details
                     }
                     else
                     {
+                        //cout details
                         //cout << currentWire.delay << " " << currentWire.name << " " << currentWire.type << endl;
                     }
                     outfile << currentWire.delay << " " << currentWire.name << " " << currentWire.type << endl;
