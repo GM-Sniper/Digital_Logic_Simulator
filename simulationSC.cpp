@@ -17,7 +17,8 @@ struct wire
     bool type;
     int delay;
     int initial;
-    wire(string n, int t, int d = 0) : name(n), type(t), delay(d), initial(1) {}
+    int DGCD;
+    wire(string n, int t, int d = 0) : name(n), type(t), delay(d), initial(1),DGCD(0) {}
     void settype(int t)
     {
         type = t;
@@ -30,7 +31,13 @@ struct wire
     {
         return initial;
     }
+    void setDGCD(int d)
+    {
+        DGCD=d;
+    }
 };
+
+vector<int>OGCD;
 
 vector<Gates> parseLibraryFile(const string &filename)
 {
@@ -309,6 +316,11 @@ bool computingLogic(vector<pair<string, vector<wire>>> vec, vector<Gates> libCom
                         outfile << getDelay(vec,currentWire.name) << " " << currentWire.name << " " << currentWire.type << endl;
                         currentWire.setinitial(0);
                     }
+                    if(currentWire.DGCD==0)
+                    {
+                        currentWire.setDGCD(currentWire.delay);
+                        OGCD.push_back(currentWire.DGCD);
+                    }
                     // outfile << currentWire.delay << " " << currentWire.name << " " << currentWire.type << endl;
                     currentWire.settype(1 - currentWire.type);
                     currentWire.delay += currentWire.delay; // Increment delay for the next cycle
@@ -470,6 +482,26 @@ bool computingLogic(vector<pair<string, vector<wire>>> vec, vector<Gates> libCom
     }
     return output;
 }
+
+int findGCD(int a, int b) {
+    while (b != 0) {
+        int temp = b;
+        b = a % b;
+        a = temp;
+    }
+    return a;
+}
+
+int findGCD(const vector<int>& elements) {
+    int result = elements[0];
+    for (int i = 1; i < elements.size(); i++) {
+        result = findGCD(result, elements[i]);
+    }
+    return result;
+}
+
+
+
 int main()
 {
     vector<Gates> libComponents = parseLibraryFile("Tests/libFile.lib");
