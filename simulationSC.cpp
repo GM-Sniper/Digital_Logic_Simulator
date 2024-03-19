@@ -11,14 +11,14 @@
 #include "Circuit Classes/Gates.h"
 
 using namespace std;
-struct wire
+struct wire  //Struct for wires is used to instantiate wires that have common attributes like name, delay,and boolean type.
 {
     string name;
     bool type;
     int delay;
     int initial;
     int DGCD;
-    wire(string n, int t, int d = 0) : name(n), type(t), delay(d), initial(1), DGCD(d) {}
+    wire(string n, int t, int d = 0) : name(n), type(t), delay(d), initial(1),DGCD(0) {}
     void settype(int t)
     {
         type = t;
@@ -33,11 +33,11 @@ struct wire
     }
     void setDGCD(int d)
     {
-        DGCD = d;
+        DGCD=d;
     }
 };
 
-vector<int> OGCD;
+vector<int>OGCD;
 
 vector<Gates> parseLibraryFile(const string &filename)
 {
@@ -73,7 +73,7 @@ vector<Gates> parseLibraryFile(const string &filename)
     return components;
 }
 
-vector<Stimuli> parseStimuliFile(const string &filename)
+vector<Stimuli> parseStimuliFile(const string &filename) //Reads from .stim files to read the time delay used for each input
 {
     vector<Stimuli> stimuli;
 
@@ -151,7 +151,7 @@ vector<Stimuli> parseStimuliFile(const string &filename)
     return stimuli;
 }
 
-void parseCircuitFile(const string &filename, vector<pair<string, vector<wire>>> &mp, vector<Stimuli> stimuli)
+void parseCircuitFile(const string &filename, vector<pair<string, vector<wire>>> &mp, vector<Stimuli> stimuli)//Reads from .cir file to store the gates used in circuits, the outputs, and inputs. 
 {
     string input;
     vector<string> inputs2;
@@ -189,13 +189,13 @@ void parseCircuitFile(const string &filename, vector<pair<string, vector<wire>>>
             while (getline(file, line))
             {
 
-                vector<wire> vec;
+                vector<wire> vec;// vector of wires (the first element is always the output and all other elements are the inputs used for this gate)
                 // Parse each component line into a vector pair
                 // Example: G0, NOT, w1, C
                 istringstream iss(line);
                 string name, output;
                 string type;
-                vector<wire> outputs;
+                // vector<wire> outputs;
                 if (line.empty() || line[0] == ' ') // Skip lines that are empty or start with a whitespace character
                     continue;
                 if (iss >> name >> type >> output)
@@ -217,7 +217,7 @@ void parseCircuitFile(const string &filename, vector<pair<string, vector<wire>>>
                         output.erase(0, 1);
                     }
 
-                    vec.push_back(wire(output, 0));
+                    vec.push_back(wire(output, 0));// Here we are adding the output to the vector
 
                     while (iss >> input)
                     {
@@ -240,7 +240,7 @@ void parseCircuitFile(const string &filename, vector<pair<string, vector<wire>>>
                         }
                         if (position == -1)
                         {
-                            vec.push_back(wire(input, 0));
+                            vec.push_back(wire(input, 0));// adding the inputs to the vector
                         }
                         else
                         {
@@ -256,7 +256,7 @@ void parseCircuitFile(const string &filename, vector<pair<string, vector<wire>>>
 
     return;
 }
-bool getWire(vector<pair<string, vector<wire>>> vec, string wire_name)
+bool getWire(vector<pair<string, vector<wire>>> vec, string wire_name)// a vector that returns the boolean type of the needed wire
 {
     for (auto it = vec.begin(); it != vec.end(); it++)
     {
@@ -271,7 +271,7 @@ bool getWire(vector<pair<string, vector<wire>>> vec, string wire_name)
     return 0;
 }
 
-int getDelay(vector<pair<string, vector<wire>>> vec, string wire_name)
+int getDelay(vector <pair<string, vector<wire>>> vec, string wire_name)
 {
     for (auto it = vec.begin(); it != vec.end(); it++)
     {
@@ -317,11 +317,11 @@ bool computingLogic(vector<pair<string, vector<wire>>> vec, vector<Gates> libCom
                         outfile << getDelay(vec, currentWire.name) << " " << currentWire.name << " " << currentWire.type << endl;
                         currentWire.setinitial(0);
                     }
-                    // if(currentWire.DGCD==0)
-                    // {
-                    //     currentWire.setDGCD(currentWire.delay);
-                    //     OGCD.push_back(currentWire.DGCD);
-                    // }
+                    if(currentWire.DGCD==0)
+                    {
+                        currentWire.setDGCD(currentWire.delay);
+                        OGCD.push_back(currentWire.DGCD);
+                    }
                     // outfile << currentWire.delay << " " << currentWire.name << " " << currentWire.type << endl;
                     currentWire.settype(1 - currentWire.type);
                     // currentWire.delay += currentWire.delay; // Increment delay for the next cycle
@@ -506,10 +506,8 @@ bool computingLogic(vector<pair<string, vector<wire>>> vec, vector<Gates> libCom
     return output;
 }
 
-int findGCD(int a, int b)
-{
-    while (b != 0)
-    {
+int findGCD(int a, int b) {
+    while (b != 0) {
         int temp = b;
         b = a % b;
         a = temp;
@@ -517,15 +515,15 @@ int findGCD(int a, int b)
     return a;
 }
 
-int scale(const vector<int> &elements)
-{
+int scale(const vector<int>& elements) {
     int result = elements[0];
-    for (int i = 1; i < elements.size(); i++)
-    {
+    for (int i = 1; i < elements.size(); i++) {
         result = findGCD(result, elements[i]);
     }
     return result;
 }
+
+
 
 int main()
 {
