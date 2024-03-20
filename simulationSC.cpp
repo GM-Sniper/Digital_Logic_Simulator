@@ -19,7 +19,7 @@ struct wire // Struct for wires is used to instantiate wires that have common at
     int delay;
     int initial;
     int DGCD;
-    wire(string n, int t, int d = 0) : name(n), type(t), delay(d), initial(1), DGCD(0) {}
+    wire(string n, int t, int d = 0) : name(n), type(t), delay(d), initial(0), DGCD(0) {}
     void settype(int t)
     {
         type = t;
@@ -293,7 +293,8 @@ bool computingLogic(vector<pair<string, vector<wire>>> vec, vector<Gates> libCom
     bool output = false;
     int j = 0;
     // change in one of the inputs
-    while (T_scale <= maxdelay)
+
+    while (T_scale <= maxdelay+1)
     {
         for (auto it = vec.begin(); it != vec.end(); it++)
         {
@@ -429,6 +430,7 @@ bool computingLogic(vector<pair<string, vector<wire>>> vec, vector<Gates> libCom
                     cout << "Output : " << it->second[0].name << "  Boolean state : " << getWire(vec, it->second[0].name) << endl;
                     cout << "===============================" << endl;
                 }
+                for(int i=0)
                 output = it->second[0].type;
         }
 
@@ -451,7 +453,7 @@ bool computingLogic(vector<pair<string, vector<wire>>> vec, vector<Gates> libCom
             for (int i = 0; i < it->second.size(); i++)
             {
                 wire &currentWire = it->second[i];
-                currentWire.settype(1 - currentWire.type);
+                // currentWire.settype(1 - currentWire.type);
                 // currentWire.delay += currentWire.delay; // Increment delay for the next cycle
 
                 for (int i = 0; i < stimuli.size(); i++)
@@ -470,7 +472,6 @@ bool computingLogic(vector<pair<string, vector<wire>>> vec, vector<Gates> libCom
                                 {
                                     currentWire.type = 1;
                                 }
-                                outfile << currentWire.delay << " " << currentWire.name << " " << currentWire.type << endl;
                             }
                         }
                     }
