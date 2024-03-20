@@ -3,10 +3,11 @@
 #include <string>
 #include <vector>
 #include <sstream>
-#include <map>
 #include <cctype>
 #include <chrono>
 #include <thread>
+#include<cmath>
+#include<algorithm>
 #include "Circuit Classes/Stimuli.h"
 #include "Circuit Classes/Gates.h"
 
@@ -286,72 +287,18 @@ int getDelay(vector <pair<string, vector<wire>>> vec, string wire_name)
     }
     return 0;
 }
-bool computingLogic(vector<pair<string, vector<wire>>> vec, vector<Gates> libComponents, vector<Stimuli> stimuli, ofstream &outfile, int T_scale)
+bool computingLogic(vector<pair<string, vector<wire>>> vec, vector<Gates> libComponents, vector<Stimuli> stimuli, ofstream &outfile, int T_scale, int maxdelay)
 {
     int temp_scale = T_scale;
-    auto startTime = std::chrono::steady_clock::now();
+    // auto startTime = std::chrono::steady_clock::now();
     bool output = false;
 
-    while (true)
+    while (T_scale<maxdelay)
     {
-        auto currentTime = std::chrono::steady_clock::now();
-        auto elapsedTime = std::chrono::duration_cast<std::chrono::milliseconds>(currentTime - startTime).count();
+        // auto currentTime = std::chrono::steady_clock::now();
+        // auto elapsedTime = std::chrono::duration_cast<std::chrono::milliseconds>(currentTime - startTime).count();
 
-        for (auto it = vec.begin(); it != vec.end(); it++)
-        {
-            for (int i = 0; i < it->second.size(); i++)
-            {
-                wire &currentWire = it->second[i];
-
-                if (elapsedTime >= currentWire.delay)
-                {
-                    if (currentWire.getinitial() != currentWire.type)
-                    {
-                        currentWire.setinitial(1);
-                        // cout details
-                    }
-                    else
-                    {
-                        // cout details
-                        // cout << getDelay(vec,currentWire.name) << " " << currentWire.name << " " << currentWire.type << endl;
-                        outfile << getDelay(vec, currentWire.name) << " " << currentWire.name << " " << currentWire.type << endl;
-                        currentWire.setinitial(0);
-                    }
-                    if(currentWire.DGCD==0)
-                    {
-                        currentWire.setDGCD(currentWire.delay);
-                        OGCD.push_back(currentWire.DGCD);
-                    }
-                    // outfile << currentWire.delay << " " << currentWire.name << " " << currentWire.type << endl;
-                    currentWire.settype(1 - currentWire.type);
-                    // currentWire.delay += currentWire.delay; // Increment delay for the next cycle
-                    T_scale = T_scale + temp_scale;
-                    for (int i = 0; i < stimuli.size(); i++)
-                    {
-                        if (currentWire.name == stimuli[i].getInput())
-                        {
-                            if (currentWire.delay != 0)
-                            {
-                                if (T_scale % currentWire.delay == 0)
-                                {
-                                    if (currentWire.type == 1)
-                                    {
-                                        currentWire.type = 0;
-                                    }
-                                    else
-                                    {
-                                        currentWire.type = 1;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-
-                if (currentWire.type == 1)
-                    output = true;
-            }
-        }
+        
 
         for (auto it = vec.begin(); it != vec.end(); it++)
         {
@@ -488,20 +435,76 @@ bool computingLogic(vector<pair<string, vector<wire>>> vec, vector<Gates> libCom
             }
             output = it->second[0].type;
         }
+        
         // Output wire status every 100 milliseconds
-        if (elapsedTime % 100 == 0)
-        {
-            // cout << "Wire status: " << output << endl;
-        }
+        // if (elapsedTime % 100 == 0)
+        // {
+        //     // cout << "Wire status: " << output << endl;
+        // }
 
-        // Check if the duration has elapsed
-        if (elapsedTime >= 1 * 1000)
-        {
-            break;
-        }
+        // // Check if the duration has elapsed
+        // if (elapsedTime >= 1 * 1000)
+        // {
+        //     break;
+        // }
 
         // Sleep for a short duration to avoid busy-waiting
-        std::this_thread::sleep_for(std::chrono::milliseconds(50));
+      //  std::this_thread::sleep_for(std::chrono::milliseconds(50));
+      for (auto it = vec.begin(); it != vec.end(); it++)
+        {
+            for (int i = 0; i < it->second.size(); i++)
+            {
+                wire &currentWire = it->second[i];
+
+                // if (elapsedTime >= currentWire.delay)
+                // {
+                    // if (currentWire.getinitial() != currentWire.type)
+                    // {
+                    //     currentWire.setinitial(1);
+                    //     // cout details
+                    // }
+                    // else
+                    // {
+                        // cout details
+                        // cout << getDelay(vec,currentWire.name) << " " << currentWire.name << " " << currentWire.type << endl;
+                        // outfile << getDelay(vec, currentWire.name) << " " << currentWire.name << " " << currentWire.type << endl;
+                        //currentWire.setinitial(0);
+                    // }
+                    // if(currentWire.DGCD==0)
+                    // {
+                    //     currentWire.setDGCD(currentWire.delay);
+                    //     OGCD.push_back(currentWire.DGCD);
+                    // }
+                    outfile << currentWire.delay << " " << currentWire.name << " " << currentWire.type << endl;
+                    currentWire.settype(1 - currentWire.type);
+                    // currentWire.delay += currentWire.delay; // Increment delay for the next cycle
+                    T_scale = T_scale + temp_scale;
+                    for (int i = 0; i < stimuli.size(); i++)
+                    {
+                        if (currentWire.name == stimuli[i].getInput())
+                        {
+                            if (currentWire.delay != 0)
+                            {
+                                if (T_scale % currentWire.delay == 0)
+                                {
+                                    if (currentWire.type == 1)
+                                    {
+                                        currentWire.type = 0;
+                                    }
+                                    else
+                                    {
+                                        currentWire.type = 1;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                //}
+
+                if (currentWire.type == 1)
+                    output = true;
+            }
+        }
     }
     return output;
 }
@@ -523,6 +526,12 @@ int scale(const vector<int>& elements) {
     return result;
 }
 
+int findMax(const std::vector<int>& vec) {
+
+    auto max_iterator = std::max_element(vec.begin(), vec.end());
+    return *max_iterator;
+}
+
 
 
 int main()
@@ -535,6 +544,7 @@ int main()
         Vscale.push_back(stimuli[i].getTimeStamp());
     }
     int OScale = scale(Vscale);
+    int maxdelay=findMax(Vscale);
     vector<pair<string, vector<wire>>> mp;
     int i = 0;
     parseCircuitFile("Tests/TestCircuit1/testCircuit1.cir", mp, stimuli);
@@ -554,6 +564,6 @@ int main()
         cout << endl;
         i++;
     }
-    cout << computingLogic(mp, libComponents, stimuli, outfile, OScale);
+    cout << computingLogic(mp, libComponents, stimuli, outfile, OScale,maxdelay);
     outfile.close();
 }
