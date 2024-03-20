@@ -512,7 +512,7 @@ bool computingLogic(vector<pair<string, vector<wire>>> vec, vector<Gates> libCom
         // Output wire status every 100 milliseconds
         // if (elapsedTime % 100 == 0)
         // {
-        //     // cout << "Wire status: " << output << endl;
+        //     // cout << "Wire status " << output << endl;
         // }
 
         // // Check if the duration has elapsed
