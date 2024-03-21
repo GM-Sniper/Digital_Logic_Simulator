@@ -614,8 +614,8 @@ int main()
     int maxDelay = findMax(Vscale);
     vector<pair<string, vector<wire>>> mp;
     int i = 0;
-    parseCircuitFile("Tests/TestCircuit1/testCircuit1.cir", mp, stimuli);
-    ofstream outfile("Tests/TestCircuit1/outputSimulation1.sim");
+    parseCircuitFile("Tests/TestCircuit2/testCircuit2.cir", mp, stimuli);
+    ofstream outfile("Tests/TestCircuit2/outputSimulation2.sim");
     if (!outfile.is_open())
     {
         cerr << "Error opening output file" << endl;

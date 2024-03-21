@@ -7,4 +7,4 @@ G0, NOT, W1, A
 G1, NAND2, W2, B, W1
 G2, NAND2, W3, W2, C
 G3, NOT, W4, C
-G4, AND, F, W3, W4
+G4, AND2, F, W3, W4
