@@ -319,8 +319,6 @@ bool computingLogic(vector<pair<string, vector<wire>>> vec, vector<Gates> libCom
                     it->second[0].delay = (getDelay(vec, it->second[1].name)) + libComponents[position].getDelayTime();
                     outfile << getDelay(vec, it->second[0].name) << " " << it->second[0].name << " " << it->second[0].type << endl;
                     it->second[0].initial.push(getWire(vec, it->second[0].name));
-                    
-
                 }
                 // cout<<"jsdhfkjshdjkfhsjkdhfkjs   "<<getDelay(vec, it->second[1].name)<<endl;
                 // cout<<"-"<<it->second[1].name<<"-"<<endl;
@@ -387,7 +385,7 @@ bool computingLogic(vector<pair<string, vector<wire>>> vec, vector<Gates> libCom
                 it->second[0].type = !(getWire(vec, it->second[1].name) & getWire(vec, it->second[2].name));
                 cout << "Output : " << it->second[0].name << "  Boolean state : " << getWire(vec, it->second[0].name) << endl;
                 it->second[0].delay = max(getDelay(vec, it->second[2].name), getDelay(vec, it->second[1].name)) + libComponents[position].getDelayTime();
-               if (it->second[0].initial.empty())
+                if (it->second[0].initial.empty())
                 {
                     it->second[0].initial.push(getWire(vec, it->second[0].name));
                 }
@@ -463,7 +461,7 @@ bool computingLogic(vector<pair<string, vector<wire>>> vec, vector<Gates> libCom
                 {
                     outfile << getDelay(vec, it->second[0].name) << " " << it->second[0].name << " " << it->second[0].type << endl;
                 }
-                // it->second[0].delay = min(it->second[2].delay, it->second[1].delay, it->second[3].delay) + libComponents[position].getDelayTime();
+                it->second[0].delay = minOfThree(it->second[2].delay, it->second[1].delay, it->second[3].delay) + libComponents[position].getDelayTime();
                 cout << "===============================" << endl;
             }
             else if (it->first == "NAND3")
@@ -480,7 +478,7 @@ bool computingLogic(vector<pair<string, vector<wire>>> vec, vector<Gates> libCom
                 {
                     outfile << getDelay(vec, it->second[0].name) << " " << it->second[0].name << " " << it->second[0].type << endl;
                 }
-                // it->second[0].delay = min(it->second[2].delay, it->second[1].delay, it->second[3].delay) + libComponents[position].getDelayTime();
+                it->second[0].delay = maxOfThree(it->second[2].delay, it->second[1].delay, it->second[3].delay) + libComponents[position].getDelayTime();
                 cout << "===============================" << endl;
             }
             else if (it->first == "NOR3")
@@ -572,7 +570,32 @@ bool computingLogic(vector<pair<string, vector<wire>>> vec, vector<Gates> libCom
     }
     return output;
 }
-
+int maxOfThree(int a, int b, int c)
+{
+    int max = a;
+    if (b > max)
+    {
+        max = b;
+    }
+    if (c > max)
+    {
+        max = c;
+    }
+    return max;
+}
+int minOfThree(int a, int b, int c)
+{
+    int min = a;
+    if (b < min)
+    {
+        min = b;
+    }
+    if (c < min)
+    {
+        min = c;
+    }
+    return min;
+}
 int findGCD(int a, int b)
 {
     while (b != 0)
