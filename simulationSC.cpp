@@ -16,9 +16,8 @@ struct wire // Struct for wires is used to instantiate wires that have common at
     string name;
     bool type;
     int delay;
-    int previous;
     stack<int> initial;
-    wire(string n, int t, int d = 0) : name(n), type(t), delay(d),previous(d) {}
+    wire(string n, int t, int d = 0) : name(n), type(t), delay(d) {}
 };
 
 vector<Gates> parseLibraryFile(const string &filename)
@@ -358,6 +357,7 @@ bool computingLogic(vector<pair<string, vector<wire>>> ioComponents, vector<Gate
                     // If not, push the current state to the initial stack
                     it->second[0].initial.push(getWire(ioComponents, it->second[0].name));
                 }
+
                 else if (it->second[0].initial.top() != it->second[0].type)
                 {
                     // If the current state is different from the initial state, calculate delay and update
@@ -404,6 +404,7 @@ bool computingLogic(vector<pair<string, vector<wire>>> ioComponents, vector<Gate
                         it->second[0].type = it->second[0].type & getWire(ioComponents, it->second[i].name);
                     }
                 }
+                
                 // Print output wire and its boolean state
                 cout << "Output : " << it->second[0].name << "  Boolean state : " << getWire(ioComponents, it->second[0].name) << endl;
 
@@ -416,7 +417,7 @@ bool computingLogic(vector<pair<string, vector<wire>>> ioComponents, vector<Gate
                 else if (it->second[0].initial.top() != it->second[0].type)
                 {
                     // If the current state is different from the initial state, calculate delay and update
-                    if(it->second[0].previous==0 && it->second[0].type==1)
+                    if(it->second[0].initial.top()==1 && it->second[0].type==0)
                     {
                     it->second[0].delay = getmax(it->second, ioComponents) + libComponents[position].getDelayTime();
                     }
@@ -429,6 +430,7 @@ bool computingLogic(vector<pair<string, vector<wire>>> ioComponents, vector<Gate
                     // Push the current state to the initial stack
                     it->second[0].initial.push(getWire(ioComponents, it->second[0].name));
                 }
+                
 
                 // Print a separator for clarity
                 cout << "===============================" << endl;
@@ -470,7 +472,7 @@ bool computingLogic(vector<pair<string, vector<wire>>> ioComponents, vector<Gate
                 else if (it->second[0].initial.top() != it->second[0].type)
                 {
                     // If the top of the stack is different from the current boolean state, update delay and push to stack
-                    if(it->second[0].previous==0 && it->second[0].type==1)
+                    if(it->second[0].initial.top()==1 && it->second[0].type==0)
                     {
                     it->second[0].delay = getmin(it->second, ioComponents) + libComponents[position].getDelayTime();
                     }
@@ -478,8 +480,8 @@ bool computingLogic(vector<pair<string, vector<wire>>> ioComponents, vector<Gate
                     {
                         it->second[0].delay = getmax(it->second, ioComponents) + libComponents[position].getDelayTime();
                     }
+                    
                     F_output.push_back({getDelay(ioComponents, it->second[0].name), it->second[0].name, it->second[0].type});
-
 
 
                     it->second[0].initial.push(getWire(ioComponents, it->second[0].name));
@@ -525,7 +527,14 @@ bool computingLogic(vector<pair<string, vector<wire>>> ioComponents, vector<Gate
                 else if (it->second[0].initial.top() != it->second[0].type)
                 {
                     // If the top of the stack is different from the current boolean state, update delay and push to stack
-                    it->second[0].delay = getmax(it->second, ioComponents) + libComponents[position].getDelayTime();
+                    if(it->second[0].initial.top()==1 && it->second[0].type==0)
+                    {
+                    it->second[0].delay = getmin(it->second, ioComponents) + libComponents[position].getDelayTime();
+                    }
+                    else 
+                    {
+                        it->second[0].delay = getmax(it->second, ioComponents) + libComponents[position].getDelayTime();
+                    }
                     F_output.push_back({getDelay(ioComponents, it->second[0].name), it->second[0].name, it->second[0].type});
                     it->second[0].initial.push(getWire(ioComponents, it->second[0].name));
                 }
@@ -558,7 +567,14 @@ bool computingLogic(vector<pair<string, vector<wire>>> ioComponents, vector<Gate
                 else if (it->second[0].initial.top() != it->second[0].type)
                 {
                     // If the top of the stack is different from the current boolean state, update delay and push to stack
-                    it->second[0].delay = getmin(it->second, ioComponents) + libComponents[position].getDelayTime();
+                   if(it->second[0].initial.top()==1 && it->second[0].type==0)
+                    {
+                    it->second[0].delay = getmax(it->second, ioComponents) + libComponents[position].getDelayTime();
+                    }
+                    else 
+                    {
+                        it->second[0].delay = getmin(it->second, ioComponents) + libComponents[position].getDelayTime();
+                    }
                     F_output.push_back({getDelay(ioComponents, it->second[0].name), it->second[0].name, it->second[0].type});
                     it->second[0].initial.push(getWire(ioComponents, it->second[0].name));
                 }
@@ -701,7 +717,7 @@ bool compareStimuli(const Stimuli& a, const Stimuli& b) {
 int main()
 {
     vector<Gates> libComponents = parseLibraryFile("Tests/libFile.lib");
-    vector<Stimuli> stimuli = parseStimuliFile("Tests/TestCircuit4/stimFileCirc4.stim");
+    vector<Stimuli> stimuli = parseStimuliFile("Tests/TestCircuit1/stimFileCirc1.stim");
     vector<int> timeScale;
     vector<Stimuli> output;
     for (int i = 0; i < stimuli.size(); i++)
@@ -711,8 +727,8 @@ int main()
     int OScale = scale(timeScale);
     vector<pair<string, vector<wire>>> mp;
     int i = 0;
-    parseCircuitFile("Tests/TestCircuit4/testCircuit4.cir", mp, stimuli);
-    ofstream outfile("Tests/TestCircuit4/outputSimulation4.sim");
+    parseCircuitFile("Tests/TestCircuit1/testCircuit1.cir", mp, stimuli);
+    ofstream outfile("Tests/TestCircuit1/outputSimulation1.sim");
     if (!outfile.is_open())
     {
         cerr << "Error opening output file" << endl;
