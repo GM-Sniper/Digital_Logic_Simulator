@@ -676,6 +676,10 @@ int findMax(const vector<int> &vec)
     return *max_iterator;
 }
 
+bool compareStimuli(const Stimuli& a, const Stimuli& b) {
+    return a.getTimeStamp() < b.getTimeStamp(); 
+}
+
 int main()
 {
     vector<Gates> libComponents = parseLibraryFile("Tests/libFile.lib");
@@ -707,6 +711,8 @@ int main()
         i++;
     }
     cout << computingLogic(mp, libComponents, stimuli, timeScale, output);
+
+    std::sort(output.begin(), output.end(), compareStimuli);
 
     for (int i = 0; i < output.size(); i++)
     {
