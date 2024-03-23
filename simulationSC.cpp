@@ -50,11 +50,15 @@ vector<Gates> parseLibraryFile(const string &filename)
             continue; // Skip to the next line if parsing fails
         }
         // Remove the trailing comma from the gate name if necessary
-        if (name.at(name.length() - 1) == ',')
+       if (name.at(name.length() - 1) == ',')
             name.erase(name.length() - 1, 1);
+        while (name.at(0)==' ')
+            {name.erase(0,1);}
         // Remove the trailing comma from the output expression if necessary
-        if (outputExpression.at(outputExpression.length() - 1) == ',')
+        if(outputExpression.at(outputExpression.length() - 1) == ',')
             outputExpression.erase(outputExpression.length() - 1, 1);
+        while (outputExpression.at(0)==' ')
+            {outputExpression.erase(0,1);}
         // Create a Gates object with the parsed information and add it to the components vector
         components.push_back({name, numInputs, outputExpression, delayPs});
     }
@@ -130,7 +134,7 @@ vector<Stimuli> parseStimuliFile(const string &filename) // Reads from .stim fil
             cerr << "Error: Invalid logic value (must be 0 or 1) in line: " << line << endl;
             continue; // Skip to the next line
         }
-        if (input.at(0) == ' ')
+        while (input.at(0) == ' ')
         {
             input.erase(0, 1);
         }
@@ -197,19 +201,19 @@ void parseCircuitFile(const string &filename, vector<pair<string, vector<wire>>>
                 if (iss >> name >> type >> output)
                 {
                     // Clean up type and output strings
-                    if (type.at(type.length() - 1) == ',')
+                    while (type.at(type.length() - 1) == ',')
                     {
                         type.erase(type.length() - 1, 1);
                     }
-                    if (type.at(0) == ' ')
+                    while (type.at(0) == ' ')
                     {
                         type.erase(0, 1);
                     }
-                    if (output.at(output.length() - 1) == ',')
+                    while (output.at(output.length() - 1) == ',')
                     {
                         output.erase(output.length() - 1, 1);
                     }
-                    if (output.at(0) == ' ')
+                    while (output.at(0) == ' ')
                     {
                         output.erase(0, 1);
                     }
@@ -219,11 +223,11 @@ void parseCircuitFile(const string &filename, vector<pair<string, vector<wire>>>
                     // Read inputs for the gate
                     while (iss >> input)
                     {
-                        if (input.at(input.length() - 1) == ',')
+                        while (input.at(input.length() - 1) == ',')
                         {
                             input.erase(input.length() - 1, 1);
                         }
-                        if (input.at(0) == ' ')
+                        while (input.at(0) == ' ')
                         {
                             input.erase(0, 1);
                         }
