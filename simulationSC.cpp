@@ -421,9 +421,9 @@ bool computingLogic(vector<pair<string, vector<wire>>> ioComponents, vector<Gate
                     {
                     it->second[0].delay = getmax(it->second, ioComponents) + libComponents[position].getDelayTime();
                     }
-                    else 
+                    if(it->second[0].initial.top()==1 && it->second[0].type==0) 
                     {
-                        it->second[0].delay = getmin(it->second, ioComponents) + libComponents[position].getDelayTime();
+                       it->second[0].delay = getmin(it->second, ioComponents) + libComponents[position].getDelayTime();
                     }
                     F_output.push_back({getDelay(ioComponents, it->second[0].name), it->second[0].name, it->second[0].type});
 
