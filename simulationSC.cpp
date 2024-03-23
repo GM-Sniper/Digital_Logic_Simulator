@@ -738,7 +738,7 @@ int main()
 
     for (int i = 0; i < output.size(); i++)
     {
-        if (output[i].getTimeStamp() != output[i + 1].getTimeStamp())
+        if (output[i].getTimeStamp() != output[i + 1].getTimeStamp() && output[i].getInput()!=output[i+1].getInput() && output[i].getLogicValue()!=output[i+1].getLogicValue() )
         {
             outfile << output[i].getTimeStamp() << " " << output[i].getInput() << " " << output[i].getLogicValue() << endl;
         }
