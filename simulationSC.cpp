@@ -358,14 +358,14 @@ bool computingLogic(vector<pair<string, vector<wire>>> ioComponents, vector<Gate
                     // Push the current state to the initial stack
                     it->second[0].initial.push(getWire(ioComponents, it->second[0].name));
                 }
-                else
-                {
-                    // Clear the initial state stack if the state remains unchanged
-                    while (it->second[0].initial.size() != 0)
-                    {
-                        it->second[0].initial.pop();
-                    }
-                }
+                // else
+                // {
+                //     // Clear the initial state stack if the state remains unchanged
+                //     while (it->second[0].initial.size() != 0)
+                //     {
+                //         it->second[0].initial.pop();
+                //     }
+                // }
 
                 // Print a separator for clarity
                 cout << "===============================" << endl;
@@ -741,7 +741,7 @@ int findMax(const vector<int> &vec)
 int main()
 {
     vector<Gates> libComponents = parseLibraryFile("Tests/libFile.lib");
-    vector<Stimuli> stimuli = parseStimuliFile("Tests/TestCircuit4/stimFileCirc4.stim");
+    vector<Stimuli> stimuli = parseStimuliFile("Tests/TestCircuit1/stimFileCirc1.stim");
     vector<int> timeScale;
     vector<Stimuli> output;
     for (int i = 0; i < stimuli.size(); i++)
@@ -751,8 +751,8 @@ int main()
     int OScale = scale(timeScale);
     vector<pair<string, vector<wire>>> mp;
     int i = 0;
-    parseCircuitFile("Tests/TestCircuit4/testCircuit4.cir", mp, stimuli);
-    ofstream outfile("Tests/TestCircuit4/outputSimulation4.sim");
+    parseCircuitFile("Tests/TestCircuit1/testCircuit1.cir", mp, stimuli);
+    ofstream outfile("Tests/TestCircuit1/outputSimulation1.sim");
     if (!outfile.is_open())
     {
         cerr << "Error opening output file" << endl;

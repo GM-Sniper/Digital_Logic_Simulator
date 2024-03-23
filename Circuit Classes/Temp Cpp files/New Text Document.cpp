@@ -310,16 +310,16 @@ int minOfThree(int a, int b, int c)
     }
     return min;
 }
-bool simulateLogicCircuit(vector<pair<string, vector<wire>>> circuit, vector<Gates> libComponents, vector<Stimuli> stimuli, ofstream &outfile, vector<int> timeScale, int maxDelay, vector<Stimuli> &finalOutput) // send the delay vector to the function
+bool computingLogic(vector<pair<string, vector<wire>>> vec, vector<Gates> libComponents, vector<Stimuli> stimuli, ofstream &outfile, vector<int> Vscale, int maxdelay, vector<Stimuli> &F_output) // send the delay vector to the function
 {
     int T_scale = 0;
-    bool circuitOutput = false;
+    bool output = false;
     int j = 0;
     // change in one of the inputs
-    while (j <= timeScale.size())
+    while (j <= Vscale.size())
     {
         cout << "knsdbfnkhsdkhfsh " << T_scale << endl;
-        for (auto it = circuit.begin(); it != circuit.end(); it++)
+        for (auto it = vec.begin(); it != vec.end(); it++)
         {
 
             int position = -1;
@@ -334,23 +334,23 @@ bool simulateLogicCircuit(vector<pair<string, vector<wire>>> circuit, vector<Gat
             if (it->first == "NOT")
             {
                 cout << "Not Gate " << endl;
-                cout << "Input : " << it->second[1].name << "  Boolean state : " << getWire(circuit, it->second[1].name) << endl;
+                cout << "Input : " << it->second[1].name << "  Boolean state : " << getWire(vec, it->second[1].name) << endl;
                 it->second[0].type = !(it->second[1].type);
-                cout << "Output : " << it->second[0].name << "  Boolean state : " << getWire(circuit, it->second[0].name) << endl;
+                cout << "Output : " << it->second[0].name << "  Boolean state : " << getWire(vec, it->second[0].name) << endl;
 
                 cout << "/////////// " << it->second[0].name << " " << it->second[0].type << endl;
                 if (it->second[0].initial.empty())
                 {
-                    it->second[0].initial.push(getWire(circuit, it->second[0].name));
+                    it->second[0].initial.push(getWire(vec, it->second[0].name));
                 }
                 else if (it->second[0].initial.top() != it->second[0].type)
                 {
                     cout << "changed          " << it->second[0].initial.top() << endl;
-                    it->second[0].delay = (getDelay(circuit, it->second[1].name)) + libComponents[position].getDelayTime();
+                    it->second[0].delay = (getDelay(vec, it->second[1].name)) + libComponents[position].getDelayTime();
                     // outfile << getDelay(vec, it->second[0].name) << " " << it->second[0].name << " " << it->second[0].type << endl;
-                    finalOutput.push_back({getDelay(circuit, it->second[0].name), it->second[0].name, it->second[0].type});
+                    F_output.push_back({getDelay(vec, it->second[0].name), it->second[0].name, it->second[0].type});
 
-                    it->second[0].initial.push(getWire(circuit, it->second[0].name));
+                    it->second[0].initial.push(getWire(vec, it->second[0].name));
                 }
                 else
                 {
@@ -367,29 +367,46 @@ bool simulateLogicCircuit(vector<pair<string, vector<wire>>> circuit, vector<Gat
 
                 cout << "===============================" << endl;
             }
-            else if (it->first == "AND2")
-            {
+            else if (it->first contains("AND"))
+            {   
+
+                    for(int i=1;i<vec.size();i++)
+                    {   
+                        if(i==1)
+                        {
+                            it->second[0].type=getWire(vec,it->second[i].name)&getWire(vec,it->second[i+1].name)
+                            i++;
+                        }
+                        else
+                        {
+                            it->second[0].type=it->second[0].type & getWire(vec,it->second[i].name);
+                        }
+                       
+                    }
+
+
+
                 cout << "AND2 Gate " << endl;
                 cout << "Inputs : \n"
-                     << "First : " << it->second[1].name << " Boolean state : " << getWire(circuit, it->second[1].name) << endl;
-                cout << "Second : " << it->second[2].name << " Boolean state : " << getWire(circuit, it->second[2].name) << endl;
-                it->second[0].type = (getWire(circuit, it->second[1].name) & getWire(circuit, it->second[2].name));
-                cout << "Output : " << it->second[0].name << "  Boolean state : " << getWire(circuit, it->second[0].name) << endl;
+                     << "First : " << it->second[1].name << " Boolean state : " << getWire(vec, it->second[1].name) << endl;
+                cout << "Second : " << it->second[2].name << " Boolean state : " << getWire(vec, it->second[2].name) << endl;
+                it->second[0].type = (getWire(vec, it->second[1].name) & getWire(vec, it->second[2].name));
+                cout << "Output : " << it->second[0].name << "  Boolean state : " << getWire(vec, it->second[0].name) << endl;
                 // it->second[0].initial.push(getWire(vec, it->second[0].name));
                 // it->second[0].delay = max(getDelay(vec, it->second[2].name), getDelay(vec, it->second[1].name)) + libComponents[position].getDelayTime();
                 // cout << "kjdfhsjdhfksdhfjhsd" << it->second[0].initial << "   " << it->second[0].name << endl;
                 if (it->second[0].initial.empty())
                 {
-                    it->second[0].initial.push(getWire(circuit, it->second[0].name));
+                    it->second[0].initial.push(getWire(vec, it->second[0].name));
                 }
                 else if (it->second[0].initial.top() != it->second[0].type)
                 {
                     cout << "changed          " << it->second[0].initial.top() << endl;
-                    it->second[0].delay = max(getDelay(circuit, it->second[2].name), getDelay(circuit, it->second[1].name)) + libComponents[position].getDelayTime();
+                    it->second[0].delay = max(getDelay(vec, it->second[2].name), getDelay(vec, it->second[1].name)) + libComponents[position].getDelayTime();
                     // outfile << getDelay(vec, it->second[0].name) << " " << it->second[0].name << " " << it->second[0].type << endl;
-                    finalOutput.push_back({getDelay(circuit, it->second[0].name), it->second[0].name, it->second[0].type});
+                    F_output.push_back({getDelay(vec, it->second[0].name), it->second[0].name, it->second[0].type});
 
-                    it->second[0].initial.push(getWire(circuit, it->second[0].name));
+                    it->second[0].initial.push(getWire(vec, it->second[0].name));
                 }
                 cout << "===============================" << endl;
             }
@@ -397,25 +414,25 @@ bool simulateLogicCircuit(vector<pair<string, vector<wire>>> circuit, vector<Gat
             {
                 cout << "OR2 Gate " << endl;
                 cout << "Inputs : \n"
-                     << "First : " << it->second[1].name << " Boolean state : " << getWire(circuit, it->second[1].name) << endl;
-                cout << "Second : " << it->second[2].name << " Boolean state : " << getWire(circuit, it->second[2].name) << endl;
-                it->second[0].type = (getWire(circuit, it->second[1].name) | getWire(circuit, it->second[2].name));
-                cout << "Output : " << it->second[0].name << "  Boolean state : " << getWire(circuit, it->second[0].name) << endl;
+                     << "First : " << it->second[1].name << " Boolean state : " << getWire(vec, it->second[1].name) << endl;
+                cout << "Second : " << it->second[2].name << " Boolean state : " << getWire(vec, it->second[2].name) << endl;
+                it->second[0].type = (getWire(vec, it->second[1].name) | getWire(vec, it->second[2].name));
+                cout << "Output : " << it->second[0].name << "  Boolean state : " << getWire(vec, it->second[0].name) << endl;
                 // it->second[0].delay = min(getDelay(vec, it->second[2].name), getDelay(vec, it->second[1].name)) + libComponents[position].getDelayTime();
                 // it->second[0].initial.push(getWire(vec, it->second[0].name))
                 // cout << "kjdfhsjdhfksdhfjhsd" << it->second[0].initial << "   " << it->second[0].name << endl;
                 if (it->second[0].initial.empty())
                 {
-                    it->second[0].initial.push(getWire(circuit, it->second[0].name));
+                    it->second[0].initial.push(getWire(vec, it->second[0].name));
                 }
                 else if (it->second[0].initial.top() != it->second[0].type)
                 {
                     cout << "changed          " << it->second[0].initial.top() << endl;
-                    it->second[0].delay = min(getDelay(circuit, it->second[2].name), getDelay(circuit, it->second[1].name)) + libComponents[position].getDelayTime();
+                    it->second[0].delay = min(getDelay(vec, it->second[2].name), getDelay(vec, it->second[1].name)) + libComponents[position].getDelayTime();
                     // outfile << getDelay(vec, it->second[0].name) << " " << it->second[0].name << " " << it->second[0].type << endl;
-                    finalOutput.push_back({getDelay(circuit, it->second[0].name), it->second[0].name, it->second[0].type});
+                    F_output.push_back({getDelay(vec, it->second[0].name), it->second[0].name, it->second[0].type});
 
-                    it->second[0].initial.push(getWire(circuit, it->second[0].name));
+                    it->second[0].initial.push(getWire(vec, it->second[0].name));
                 }
                 cout << "===============================" << endl;
             }
@@ -423,23 +440,23 @@ bool simulateLogicCircuit(vector<pair<string, vector<wire>>> circuit, vector<Gat
             {
                 cout << "NAND2 Gate " << endl;
                 cout << "Inputs : \n"
-                     << "First : " << it->second[1].name << " Boolean state : " << getWire(circuit, it->second[1].name) << endl;
-                cout << "Second : " << it->second[2].name << " Boolean state : " << getWire(circuit, it->second[2].name) << endl;
-                it->second[0].type = !(getWire(circuit, it->second[1].name) & getWire(circuit, it->second[2].name));
-                cout << "Output : " << it->second[0].name << "  Boolean state : " << getWire(circuit, it->second[0].name) << endl;
+                     << "First : " << it->second[1].name << " Boolean state : " << getWire(vec, it->second[1].name) << endl;
+                cout << "Second : " << it->second[2].name << " Boolean state : " << getWire(vec, it->second[2].name) << endl;
+                it->second[0].type = !(getWire(vec, it->second[1].name) & getWire(vec, it->second[2].name));
+                cout << "Output : " << it->second[0].name << "  Boolean state : " << getWire(vec, it->second[0].name) << endl;
                 // it->second[0].delay = max(getDelay(vec, it->second[2].name), getDelay(vec, it->second[1].name)) + libComponents[position].getDelayTime();
                 if (it->second[0].initial.empty())
                 {
-                    it->second[0].initial.push(getWire(circuit, it->second[0].name));
+                    it->second[0].initial.push(getWire(vec, it->second[0].name));
                 }
                 else if (it->second[0].initial.top() != it->second[0].type)
                 {
                     cout << "changed          " << it->second[0].initial.top() << endl;
-                    it->second[0].delay = max(getDelay(circuit, it->second[2].name), getDelay(circuit, it->second[1].name)) + libComponents[position].getDelayTime();
+                    it->second[0].delay = max(getDelay(vec, it->second[2].name), getDelay(vec, it->second[1].name)) + libComponents[position].getDelayTime();
                     // outfile << getDelay(vec, it->second[0].name) << " " << it->second[0].name << " " << it->second[0].type << endl;
-                    finalOutput.push_back({getDelay(circuit, it->second[0].name), it->second[0].name, it->second[0].type});
+                    F_output.push_back({getDelay(vec, it->second[0].name), it->second[0].name, it->second[0].type});
 
-                    it->second[0].initial.push(getWire(circuit, it->second[0].name));
+                    it->second[0].initial.push(getWire(vec, it->second[0].name));
                 }
                 cout << "===============================" << endl;
             }
@@ -447,10 +464,10 @@ bool simulateLogicCircuit(vector<pair<string, vector<wire>>> circuit, vector<Gat
             {
                 cout << "NOR2 Gate " << endl;
                 cout << "Inputs : \n"
-                     << "First : " << it->second[1].name << " Boolean state : " << getWire(circuit, it->second[1].name) << endl;
-                cout << "Second : " << it->second[2].name << " Boolean state : " << getWire(circuit, it->second[2].name) << endl;
-                it->second[0].type = !(getWire(circuit, it->second[1].name) || getWire(circuit, it->second[2].name));
-                cout << "Output : " << it->second[0].name << "  Boolean state : " << getWire(circuit, it->second[0].name) << endl;
+                     << "First : " << it->second[1].name << " Boolean state : " << getWire(vec, it->second[1].name) << endl;
+                cout << "Second : " << it->second[2].name << " Boolean state : " << getWire(vec, it->second[2].name) << endl;
+                it->second[0].type = !(getWire(vec, it->second[1].name) || getWire(vec, it->second[2].name));
+                cout << "Output : " << it->second[0].name << "  Boolean state : " << getWire(vec, it->second[0].name) << endl;
                 // it->second[0].delay = min(getDelay(vec, it->second[2].name), getDelay(vec, it->second[1].name)) + libComponents[position].getDelayTime();
                 // it->second[0].initial.push(getWire(vec, it->second[0].name));
                 // if (it->second[0].initial.top() != it->second[0].type)
@@ -459,16 +476,16 @@ bool simulateLogicCircuit(vector<pair<string, vector<wire>>> circuit, vector<Gat
                 // }
                 if (it->second[0].initial.empty())
                 {
-                    it->second[0].initial.push(getWire(circuit, it->second[0].name));
+                    it->second[0].initial.push(getWire(vec, it->second[0].name));
                 }
                 else if (it->second[0].initial.top() != it->second[0].type)
                 {
                     cout << "changed          " << it->second[0].initial.top() << endl;
-                    it->second[0].delay = min(getDelay(circuit, it->second[2].name), getDelay(circuit, it->second[1].name)) + libComponents[position].getDelayTime();
+                    it->second[0].delay = min(getDelay(vec, it->second[2].name), getDelay(vec, it->second[1].name)) + libComponents[position].getDelayTime();
                     // outfile << getDelay(vec, it->second[0].name) << " " << it->second[0].name << " " << it->second[0].type << endl;
-                    finalOutput.push_back({getDelay(circuit, it->second[0].name), it->second[0].name, it->second[0].type});
+                    F_output.push_back({getDelay(vec, it->second[0].name), it->second[0].name, it->second[0].type});
 
-                    it->second[0].initial.push(getWire(circuit, it->second[0].name));
+                    it->second[0].initial.push(getWire(vec, it->second[0].name));
                 }
                 cout << "===============================" << endl;
             }
@@ -476,10 +493,10 @@ bool simulateLogicCircuit(vector<pair<string, vector<wire>>> circuit, vector<Gat
             {
                 cout << "XOR2 Gate " << endl;
                 cout << "Inputs : \n"
-                     << "First : " << it->second[1].name << " Boolean state : " << getWire(circuit, it->second[1].name) << endl;
-                cout << "Second : " << it->second[2].name << " Boolean state : " << getWire(circuit, it->second[2].name) << endl;
-                it->second[0].type = (getWire(circuit, it->second[1].name) & (!getWire(circuit, it->second[2].name))) | (!getWire(circuit, it->second[1].name) & getWire(circuit, it->second[2].name));
-                cout << "Output : " << it->second[0].name << "  Boolean state : " << getWire(circuit, it->second[0].name) << endl;
+                     << "First : " << it->second[1].name << " Boolean state : " << getWire(vec, it->second[1].name) << endl;
+                cout << "Second : " << it->second[2].name << " Boolean state : " << getWire(vec, it->second[2].name) << endl;
+                it->second[0].type = (getWire(vec, it->second[1].name) & (!getWire(vec, it->second[2].name))) | (!getWire(vec, it->second[1].name) & getWire(vec, it->second[2].name));
+                cout << "Output : " << it->second[0].name << "  Boolean state : " << getWire(vec, it->second[0].name) << endl;
                 // it->second[0].delay = max(getDelay(vec, it->second[2].name), getDelay(vec, it->second[1].name)) + libComponents[position].getDelayTime();
                 // it->second[0].initial.push(getWire(vec, it->second[0].name));
                 // if (it->second[0].initial.top() != it->second[0].type)
@@ -488,16 +505,16 @@ bool simulateLogicCircuit(vector<pair<string, vector<wire>>> circuit, vector<Gat
                 // }
                 if (it->second[0].initial.empty())
                 {
-                    it->second[0].initial.push(getWire(circuit, it->second[0].name));
+                    it->second[0].initial.push(getWire(vec, it->second[0].name));
                 }
                 else if (it->second[0].initial.top() != it->second[0].type)
                 {
                     cout << "changed          " << it->second[0].initial.top() << endl;
-                    it->second[0].delay = max(getDelay(circuit, it->second[2].name), getDelay(circuit, it->second[1].name)) + libComponents[position].getDelayTime();
+                    it->second[0].delay = max(getDelay(vec, it->second[2].name), getDelay(vec, it->second[1].name)) + libComponents[position].getDelayTime();
                     // outfile << getDelay(vec, it->second[0].name) << " " << it->second[0].name << " " << it->second[0].type << endl;
-                    finalOutput.push_back({getDelay(circuit, it->second[0].name), it->second[0].name, it->second[0].type});
+                    F_output.push_back({getDelay(vec, it->second[0].name), it->second[0].name, it->second[0].type});
 
-                    it->second[0].initial.push(getWire(circuit, it->second[0].name));
+                    it->second[0].initial.push(getWire(vec, it->second[0].name));
                 }
                 cout << "===============================" << endl;
             }
@@ -505,11 +522,11 @@ bool simulateLogicCircuit(vector<pair<string, vector<wire>>> circuit, vector<Gat
             {
                 cout << "AND3 Gate " << endl;
                 cout << "Inputs : \n"
-                     << "First : " << it->second[1].name << " Boolean state : " << getWire(circuit, it->second[1].name) << endl;
-                cout << "Second : " << it->second[2].name << " Boolean state : " << getWire(circuit, it->second[2].name) << endl;
-                cout << "Third : " << it->second[3].name << " Boolean state : " << getWire(circuit, it->second[3].name) << endl;
-                it->second[0].type = getWire(circuit, it->second[1].name) & (getWire(circuit, it->second[2].name) & getWire(circuit, it->second[3].name));
-                cout << "Output : " << it->second[0].name << "  Boolean state : " << getWire(circuit, it->second[3].name) << endl;
+                     << "First : " << it->second[1].name << " Boolean state : " << getWire(vec, it->second[1].name) << endl;
+                cout << "Second : " << it->second[2].name << " Boolean state : " << getWire(vec, it->second[2].name) << endl;
+                cout << "Third : " << it->second[3].name << " Boolean state : " << getWire(vec, it->second[3].name) << endl;
+                it->second[0].type = getWire(vec, it->second[1].name) & (getWire(vec, it->second[2].name) & getWire(vec, it->second[3].name));
+                cout << "Output : " << it->second[0].name << "  Boolean state : " << getWire(vec, it->second[3].name) << endl;
                 // it->second[0].initial.push(getWire(vec, it->second[0].name));
                 // if (it->second[0].initial.top() != it->second[0].type)
                 // {
@@ -517,16 +534,16 @@ bool simulateLogicCircuit(vector<pair<string, vector<wire>>> circuit, vector<Gat
                 // }
                 if (it->second[0].initial.empty())
                 {
-                    it->second[0].initial.push(getWire(circuit, it->second[0].name));
+                    it->second[0].initial.push(getWire(vec, it->second[0].name));
                 }
                 else if (it->second[0].initial.top() != it->second[0].type)
                 {
                     cout << "changed          " << it->second[0].initial.top() << endl;
-                    it->second[0].delay = maxOfThree(getDelay(circuit, it->second[1].name), getDelay(circuit, it->second[2].name), getDelay(circuit, it->second[3].name)) + libComponents[position].getDelayTime();
+                    it->second[0].delay = maxOfThree(getDelay(vec, it->second[1].name), getDelay(vec, it->second[2].name), getDelay(vec, it->second[3].name)) + libComponents[position].getDelayTime();
                     // outfile << getDelay(vec, it->second[0].name) << " " << it->second[0].name << " " << it->second[0].type << endl;
-                    finalOutput.push_back({getDelay(circuit, it->second[0].name), it->second[0].name, it->second[0].type});
+                    F_output.push_back({getDelay(vec, it->second[0].name), it->second[0].name, it->second[0].type});
 
-                    it->second[0].initial.push(getWire(circuit, it->second[0].name));
+                    it->second[0].initial.push(getWire(vec, it->second[0].name));
                 }
                 cout << "===============================" << endl;
             }
@@ -534,11 +551,11 @@ bool simulateLogicCircuit(vector<pair<string, vector<wire>>> circuit, vector<Gat
             {
                 cout << "OR3 Gate " << endl;
                 cout << "Inputs : \n"
-                     << "First : " << it->second[1].name << " Boolean state : " << getWire(circuit, it->second[1].name) << endl;
-                cout << "Second : " << it->second[2].name << " Boolean state : " << getWire(circuit, it->second[2].name) << endl;
-                cout << "Third : " << it->second[3].name << " Boolean state : " << getWire(circuit, it->second[3].name) << endl;
-                it->second[0].type = getWire(circuit, it->second[1].name) | (getWire(circuit, it->second[2].name) | getWire(circuit, it->second[3].name));
-                cout << "Output : " << it->second[0].name << "  Boolean state : " << getWire(circuit, it->second[0].name) << endl;
+                     << "First : " << it->second[1].name << " Boolean state : " << getWire(vec, it->second[1].name) << endl;
+                cout << "Second : " << it->second[2].name << " Boolean state : " << getWire(vec, it->second[2].name) << endl;
+                cout << "Third : " << it->second[3].name << " Boolean state : " << getWire(vec, it->second[3].name) << endl;
+                it->second[0].type = getWire(vec, it->second[1].name) | (getWire(vec, it->second[2].name) | getWire(vec, it->second[3].name));
+                cout << "Output : " << it->second[0].name << "  Boolean state : " << getWire(vec, it->second[0].name) << endl;
                 // it->second[0].initial.push(getWire(vec, it->second[0].name));
                 // if (it->second[0].initial.top() != it->second[0].type)
                 // {
@@ -546,18 +563,18 @@ bool simulateLogicCircuit(vector<pair<string, vector<wire>>> circuit, vector<Gat
                 // }
                 if (it->second[0].initial.empty())
                 {
-                    it->second[0].initial.push(getWire(circuit, it->second[0].name));
+                    it->second[0].initial.push(getWire(vec, it->second[0].name));
                 }
                 else if (it->second[0].initial.top() != it->second[0].type)
                 {
                     cout << "changed          " << it->second[0].initial.top() << endl;
-                    cout << "deeeeelaaaaaaaaaaaaaaaaaaaaaaaaaaaaay " << minOfThree(getDelay(circuit, it->second[2].name), it->second[1].delay, it->second[3].delay) << endl;
+                    cout << "deeeeelaaaaaaaaaaaaaaaaaaaaaaaaaaaaay " << minOfThree(getDelay(vec, it->second[2].name), it->second[1].delay, it->second[3].delay) << endl;
 
-                    it->second[0].delay = minOfThree(getDelay(circuit, it->second[1].name), getDelay(circuit, it->second[2].name), getDelay(circuit, it->second[3].name)) + libComponents[position].getDelayTime();
+                    it->second[0].delay = minOfThree(getDelay(vec, it->second[1].name), getDelay(vec, it->second[2].name), getDelay(vec, it->second[3].name)) + libComponents[position].getDelayTime();
                     // outfile << getDelay(vec, it->second[0].name) << " " << it->second[0].name << " " << it->second[0].type << endl;
-                    finalOutput.push_back({getDelay(circuit, it->second[0].name), it->second[0].name, it->second[0].type});
+                    F_output.push_back({getDelay(vec, it->second[0].name), it->second[0].name, it->second[0].type});
 
-                    it->second[0].initial.push(getWire(circuit, it->second[0].name));
+                    it->second[0].initial.push(getWire(vec, it->second[0].name));
                 }
                 cout << "===============================" << endl;
             }
@@ -565,11 +582,11 @@ bool simulateLogicCircuit(vector<pair<string, vector<wire>>> circuit, vector<Gat
             {
                 cout << "NAND3 Gate " << endl;
                 cout << "Inputs : \n"
-                     << "First : " << it->second[1].name << " Boolean state : " << getWire(circuit, it->second[1].name) << endl;
-                cout << "Second : " << it->second[2].name << " Boolean state : " << getWire(circuit, it->second[2].name) << endl;
-                cout << "Third : " << it->second[3].name << " Boolean state : " << getWire(circuit, it->second[3].name) << endl;
-                it->second[0].type = !(getWire(circuit, it->second[1].name) & (getWire(circuit, it->second[2].name) & getWire(circuit, it->second[3].name)));
-                cout << "Output : " << it->second[0].name << "  Boolean state : " << getWire(circuit, it->second[0].name) << endl;
+                     << "First : " << it->second[1].name << " Boolean state : " << getWire(vec, it->second[1].name) << endl;
+                cout << "Second : " << it->second[2].name << " Boolean state : " << getWire(vec, it->second[2].name) << endl;
+                cout << "Third : " << it->second[3].name << " Boolean state : " << getWire(vec, it->second[3].name) << endl;
+                it->second[0].type = !(getWire(vec, it->second[1].name) & (getWire(vec, it->second[2].name) & getWire(vec, it->second[3].name)));
+                cout << "Output : " << it->second[0].name << "  Boolean state : " << getWire(vec, it->second[0].name) << endl;
                 // it->second[0].initial.push(getWire(vec, it->second[0].name));
                 // if (it->second[0].initial.top() != it->second[0].type)
                 // {
@@ -577,16 +594,16 @@ bool simulateLogicCircuit(vector<pair<string, vector<wire>>> circuit, vector<Gat
                 // }
                 if (it->second[0].initial.empty())
                 {
-                    it->second[0].initial.push(getWire(circuit, it->second[0].name));
+                    it->second[0].initial.push(getWire(vec, it->second[0].name));
                 }
                 else if (it->second[0].initial.top() != it->second[0].type)
                 {
                     cout << "changed          " << it->second[0].initial.top() << endl;
-                    it->second[0].delay = minOfThree(getDelay(circuit, it->second[1].name), getDelay(circuit, it->second[2].name), getDelay(circuit, it->second[3].name)) + libComponents[position].getDelayTime();
+                    it->second[0].delay = minOfThree(getDelay(vec, it->second[1].name), getDelay(vec, it->second[2].name), getDelay(vec, it->second[3].name)) + libComponents[position].getDelayTime();
                     // outfile << getDelay(vec, it->second[0].name) << " " << it->second[0].name << " " << it->second[0].type << endl;
-                    finalOutput.push_back({getDelay(circuit, it->second[0].name), it->second[0].name, it->second[0].type});
+                    F_output.push_back({getDelay(vec, it->second[0].name), it->second[0].name, it->second[0].type});
 
-                    it->second[0].initial.push(getWire(circuit, it->second[0].name));
+                    it->second[0].initial.push(getWire(vec, it->second[0].name));
                 }
                 cout << "===============================" << endl;
             }
@@ -594,11 +611,11 @@ bool simulateLogicCircuit(vector<pair<string, vector<wire>>> circuit, vector<Gat
             {
                 cout << "NOR3 Gate " << endl;
                 cout << "Inputs : \n"
-                     << "First : " << it->second[1].name << " Boolean state : " << getWire(circuit, it->second[1].name) << endl;
-                cout << "Second : " << it->second[2].name << " Boolean state : " << getWire(circuit, it->second[2].name) << endl;
-                cout << "Third : " << it->second[3].name << " Boolean state : " << getWire(circuit, it->second[3].name) << endl;
-                it->second[0].type = !(getWire(circuit, it->second[1].name) | (getWire(circuit, it->second[2].name) | getWire(circuit, it->second[3].name)));
-                cout << "Output : " << it->second[0].name << "  Boolean state : " << getWire(circuit, it->second[0].name) << endl;
+                     << "First : " << it->second[1].name << " Boolean state : " << getWire(vec, it->second[1].name) << endl;
+                cout << "Second : " << it->second[2].name << " Boolean state : " << getWire(vec, it->second[2].name) << endl;
+                cout << "Third : " << it->second[3].name << " Boolean state : " << getWire(vec, it->second[3].name) << endl;
+                it->second[0].type = !(getWire(vec, it->second[1].name) | (getWire(vec, it->second[2].name) | getWire(vec, it->second[3].name)));
+                cout << "Output : " << it->second[0].name << "  Boolean state : " << getWire(vec, it->second[0].name) << endl;
                 // it->second[0].initial.push(getWire(vec, it->second[0].name));
                 // if (it->second[0].initial.top() != it->second[0].type)
                 // {
@@ -607,22 +624,22 @@ bool simulateLogicCircuit(vector<pair<string, vector<wire>>> circuit, vector<Gat
                 // it->second[0].delay = maxOfThree(it->second[2].delay, it->second[1].delay, it->second[3].delay) + libComponents[position].getDelayTime();
                 if (it->second[0].initial.empty())
                 {
-                    it->second[0].initial.push(getWire(circuit, it->second[0].name));
+                    it->second[0].initial.push(getWire(vec, it->second[0].name));
                 }
                 else if (it->second[0].initial.top() != it->second[0].type)
                 {
                     cout << "changed          " << it->second[0].initial.top() << endl;
-                    it->second[0].delay = maxOfThree(getDelay(circuit, it->second[1].name), getDelay(circuit, it->second[2].name), getDelay(circuit, it->second[3].name)) + libComponents[position].getDelayTime();
+                    it->second[0].delay = maxOfThree(getDelay(vec, it->second[1].name), getDelay(vec, it->second[2].name), getDelay(vec, it->second[3].name)) + libComponents[position].getDelayTime();
                     // outfile << getDelay(vec, it->second[0].name) << " " << it->second[0].name << " " << it->second[0].type << endl;
-                    finalOutput.push_back({getDelay(circuit, it->second[0].name), it->second[0].name, it->second[0].type});
+                    F_output.push_back({getDelay(vec, it->second[0].name), it->second[0].name, it->second[0].type});
 
-                    it->second[0].initial.push(getWire(circuit, it->second[0].name));
+                    it->second[0].initial.push(getWire(vec, it->second[0].name));
                 }
 
                 cout << "===============================" << endl;
             }
 
-            circuitOutput = it->second[0].type;
+            output = it->second[0].type;
         }
 
         // Output wire status every 100 milliseconds
@@ -641,19 +658,19 @@ bool simulateLogicCircuit(vector<pair<string, vector<wire>>> circuit, vector<Gat
         //  std::this_thread::sleep_for(std::chrono::milliseconds(50));
         if (j == 0)
         {
-            T_scale = timeScale.at(j);
+            T_scale = Vscale.at(j);
             cout << "jshdfkjhdkf " << T_scale << endl;
             j++;
         }
         else
         {
-            if (j != timeScale.size())
+            if (j != Vscale.size())
             {
-                T_scale += (timeScale.at(j) - timeScale.at(j - 1));
+                T_scale += (Vscale.at(j) - Vscale.at(j - 1));
             }
             j++;
         }
-        for (auto it = circuit.begin(); it != circuit.end(); it++)
+        for (auto it = vec.begin(); it != vec.end(); it++)
         {
             for (int i = 0; i < it->second.size(); i++)
             {
@@ -667,7 +684,7 @@ bool simulateLogicCircuit(vector<pair<string, vector<wire>>> circuit, vector<Gat
                     {
                         if (currentWire.delay != 0)
                         {
-                            if (T_scale == currentWire.delay && j != timeScale.size() + 1)
+                            if (T_scale == currentWire.delay && j != Vscale.size() + 1)
                             {
                                 if (currentWire.type == 1)
                                 {
@@ -678,14 +695,14 @@ bool simulateLogicCircuit(vector<pair<string, vector<wire>>> circuit, vector<Gat
                                     currentWire.type = 1;
                                 }
                                 // outfile << currentWire.delay << " " << currentWire.name << " " << currentWire.type << endl;
-                                finalOutput.push_back({currentWire.delay, currentWire.name, currentWire.type});
+                                F_output.push_back({currentWire.delay, currentWire.name, currentWire.type});
                             }
                         }
                     }
                 }
 
                 if (currentWire.type == 1)
-                    circuitOutput = true;
+                    output = true;
             }
         }
         // increment the time scale by the difference between two consicutive elements in the vector
@@ -693,7 +710,7 @@ bool simulateLogicCircuit(vector<pair<string, vector<wire>>> circuit, vector<Gat
 
         // else t_scale= vector.at(i)-vector.at(i-1)
     }
-    return circuitOutput;
+    return output;
 }
 int findGCD(int a, int b)
 {
@@ -726,25 +743,25 @@ int findMax(const vector<int> &vec)
 int main()
 {
     vector<Gates> libComponents = parseLibraryFile("Tests/libFile.lib");
-    vector<Stimuli> stimuli = parseStimuliFile("Tests/TestCircuit1/stimFileCirc1.stim");
-    vector<int> timeScale;
+    vector<Stimuli> stimuli = parseStimuliFile("Tests/TestCircuit4/stimFileCirc4.stim");
+    vector<int> Vscale;
     vector<Stimuli> output;
     for (int i = 0; i < stimuli.size(); i++)
     {
-        timeScale.push_back(stimuli[i].getTimeStamp());
+        Vscale.push_back(stimuli[i].getTimeStamp());
     }
-    int OScale = scale(timeScale);
-    int maxDelay = findMax(timeScale);
-    vector<pair<string, vector<wire>>> circuit;
+    int OScale = scale(Vscale);
+    int maxDelay = findMax(Vscale);
+    vector<pair<string, vector<wire>>> mp;
     int i = 0;
-    parseCircuitFile("Tests/TestCircuit1/testCircuit1.cir", circuit, stimuli);
-    ofstream outfile("Tests/TestCircuit1/outputSimulation1.sim");
+    parseCircuitFile("Tests/TestCircuit4/testCircuit4.cir", mp, stimuli);
+    ofstream outfile("Tests/TestCircuit4/outputSimulation4.sim");
     if (!outfile.is_open())
     {
         cerr << "Error opening output file" << endl;
         return 1;
     }
-    for (auto it = circuit.begin(); it != circuit.end(); it++)
+    for (auto it = mp.begin(); it != mp.end(); it++)
     {
         cout << i << " " << it->first << " ";
         for (int i = 0; i < it->second.size(); i++)
@@ -754,7 +771,7 @@ int main()
         cout << endl;
         i++;
     }
-    cout << simulateLogicCircuit(circuit, libComponents, stimuli, outfile, timeScale, maxDelay, output);
+    cout << computingLogic(mp, libComponents, stimuli, outfile, Vscale, maxDelay, output);
 
     for (int i = 0; i < output.size(); i++)
     {
