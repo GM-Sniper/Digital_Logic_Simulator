@@ -16,8 +16,9 @@ struct wire // Struct for wires is used to instantiate wires that have common at
     string name;
     bool type;
     int delay;
+    int previous;
     stack<int> initial;
-    wire(string n, int t, int d = 0) : name(n), type(t), delay(d) {}
+    wire(string n, int t, int d = 0) : name(n), type(t), delay(d),previous(d) {}
 };
 
 vector<Gates> parseLibraryFile(const string &filename)
@@ -415,7 +416,14 @@ bool computingLogic(vector<pair<string, vector<wire>>> ioComponents, vector<Gate
                 else if (it->second[0].initial.top() != it->second[0].type)
                 {
                     // If the current state is different from the initial state, calculate delay and update
+                    if(it->second[0].previous==0 && it->second[0].type==1)
+                    {
                     it->second[0].delay = getmax(it->second, ioComponents) + libComponents[position].getDelayTime();
+                    }
+                    else 
+                    {
+                        it->second[0].delay = getmin(it->second, ioComponents) + libComponents[position].getDelayTime();
+                    }
                     F_output.push_back({getDelay(ioComponents, it->second[0].name), it->second[0].name, it->second[0].type});
 
                     // Push the current state to the initial stack
@@ -462,8 +470,18 @@ bool computingLogic(vector<pair<string, vector<wire>>> ioComponents, vector<Gate
                 else if (it->second[0].initial.top() != it->second[0].type)
                 {
                     // If the top of the stack is different from the current boolean state, update delay and push to stack
+                    if(it->second[0].previous==0 && it->second[0].type==1)
+                    {
                     it->second[0].delay = getmin(it->second, ioComponents) + libComponents[position].getDelayTime();
+                    }
+                    else 
+                    {
+                        it->second[0].delay = getmax(it->second, ioComponents) + libComponents[position].getDelayTime();
+                    }
                     F_output.push_back({getDelay(ioComponents, it->second[0].name), it->second[0].name, it->second[0].type});
+
+
+
                     it->second[0].initial.push(getWire(ioComponents, it->second[0].name));
                 }
 
