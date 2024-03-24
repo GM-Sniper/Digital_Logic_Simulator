@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 
 # Read data from file
-data_file = 'Tests/TestCircuit2/outputSimulation2.sim'
+data_file = 
 data = []
 wires_initial_states = {}
 

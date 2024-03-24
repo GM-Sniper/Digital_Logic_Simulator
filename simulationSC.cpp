@@ -7,6 +7,7 @@
 #include <stack>
 #include <cmath>
 #include <algorithm>
+#include <cstdlib>
 #include "Circuit Classes/Stimuli.h"
 #include "Circuit Classes/Gates.h"
 
@@ -726,8 +727,8 @@ bool compareStimuli(const Stimuli &a, const Stimuli &b)
 
 int main()
 {
-    vector<Gates> libComponents = parseLibraryFile("Tests/libFile.lib");
-    vector<Stimuli> stimuli = parseStimuliFile("Tests/TestCircuit4/stimFileCirc4.stim");
+    vector<Gates> libComponents = parseLibraryFile("new/lib2.lib");
+    vector<Stimuli> stimuli = parseStimuliFile("new/2.stim");
     vector<int> timeScale;
     vector<Stimuli> output;
     for (int i = 0; i < stimuli.size(); i++)
@@ -737,8 +738,8 @@ int main()
     int OScale = scale(timeScale);
     vector<pair<string, vector<wire>>> mp;
     int i = 0;
-    parseCircuitFile("Tests/TestCircuit4/testCircuit4.cir", mp, stimuli);
-    ofstream outfile("Tests/TestCircuit4/outputSimulation4.sim");
+    parseCircuitFile("new/2.cir", mp, stimuli);
+    ofstream outfile("new/3.sim");
     if (!outfile.is_open())
     {
         cerr << "Error opening output file" << endl;
@@ -767,4 +768,5 @@ int main()
     }
 
     outfile.close();
+    system("plot.py");
 }
