@@ -85,10 +85,15 @@ vector<Gates> parseLibraryFile(const string &filename) {
             cerr << "Error parsing line: " << line << endl;
             exit(2);
         }
-    name=removeSpaces(name);
-    outputExpression=removeSpaces(outputExpression);
-    name=removeCommas(name);
-    outputExpression=removeCommas(outputExpression);
+        if(delayPs<0 || numInputs<0)
+        {
+            cerr << "Error in numbers in the library. Number is negative in line: " << line << endl;
+            exit(2);
+        }
+        name=removeSpaces(name);
+        outputExpression=removeSpaces(outputExpression);
+        name=removeCommas(name);
+        outputExpression=removeCommas(outputExpression);
 
         components.push_back({name, numInputs, outputExpression, delayPs});
         lineCount++;
@@ -109,69 +114,50 @@ vector<Stimuli> parseStimuliFile(const string &filename) // Reads from .stim fil
         return stimuli;
     }
 
-    string line;
-    while (getline(file, line))
-    {
-        istringstream iss(line);
-        string token;
+     string line;
+     int lineCount=1;
+    while (getline(file, line)) {
         if (line.empty() || line[0] == ' ') // Skip lines that are empty or start with a whitespace character
             continue;
-        // Parse time stamp
-        if (!getline(iss, token, ','))
-        {
-            cerr << "Error: Missing timestamp in line: " << line << endl;
-            continue; // Skip to the next line
+
+        // Split the line by commas
+        size_t pos = 0;
+        vector<string> parts;
+        while ((pos = line.find(',')) != string::npos) {
+            parts.push_back(line.substr(0, pos));
+            line.erase(0, pos + 1);
         }
-        int timeStamp;
-        try
-        {
-            timeStamp = stoi(token);
-        }
-        catch (...)
-        {
-            cerr << "Error: Invalid timestamp in line: " << line << endl;
-            continue; // Skip to the next line
+        parts.push_back(line); // Add the last part
+
+        // Validate the number of parts
+        if (parts.size() != 3) {
+            cerr << "Error: Invalid format in line: " << lineCount << endl;
+            exit(3);
         }
 
-        // Parse input
-        if (!getline(iss, token, ','))
-        {
-            cerr << "Error: Missing input in line: " << line << endl;
-            continue; // Skip to the next line
-        }
-        string input = token;
-
-        // Parse logic value
-        if (!getline(iss, token, ','))
-        {
-            cerr << "Error: Missing logic value in line: " << line << endl;
-            continue; // Skip to the next line
-        }
-        bool logicValue;
-        try
-        {
-            logicValue = stoi(token);
-        }
-        catch (...)
-        {
-            cerr << "Error: Invalid logic value in line: " << line << endl;
-            continue; // Skip to the next line
+        // Extract components from parts
+        int timeStamp, logicValue;
+        string input;
+        try {
+            timeStamp = stoi(parts[0]);
+            input = parts[1];
+            logicValue = stoi(parts[2]);
+        } catch (const exception& e) {
+            cerr << "Error parsing line: " << lineCount << endl;
+            exit(4);
         }
 
         // Validate logic value
-        if (logicValue != 0 && logicValue != 1)
-        {
-            cerr << "Error: Invalid logic value (must be 0 or 1) in line: " << line << endl;
+        if (logicValue != 0 && logicValue != 1) {
+            cerr << "Error: Invalid logic value (must be 0 or 1) in line: " << lineCount << endl;
             continue; // Skip to the next line
         }
-        while (input.at(0) == ' ')
-        {
-            input.erase(0, 1);
-        }
         // Add stimulus to the vector
+        input=removeSpaces(input);
         stimuli.push_back({timeStamp, input, logicValue});
+        lineCount++;
     }
-
+    
     file.close();
     return stimuli;
 }
