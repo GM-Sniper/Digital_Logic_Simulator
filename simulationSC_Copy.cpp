@@ -7,7 +7,6 @@
 #include <stack>
 #include <cmath>
 #include <algorithm>
-#include <cstdlib>
 #include "Circuit Classes/Stimuli.h"
 #include "Circuit Classes/Gates.h"
 
@@ -21,55 +20,93 @@ struct wire // Struct for wires is used to instantiate wires that have common at
     wire(string n, int t, int d = 0) : name(n), type(t), delay(d) {}
 };
 
+string removeSpaces(string spaces)
+{
+    string noSpaces;
+    for (int i = 0; i < spaces.length(); i++)
+    {
+        if (spaces[i] != ' ')
+        {
+            noSpaces += spaces[i];
+        }
+    }
+    return noSpaces;
+}
+string removeCommas(string commas)
+{
+    string noCommas;
+    for (int i = 0; i < commas.length(); i++)
+    {
+        if (commas[i] != ',')
+        {
+            noCommas = noCommas + commas[i];
+        }
+    }
+    return noCommas;
+}
+
 vector<Gates> parseLibraryFile(const string &filename)
 {
-    // Vector to store parsed Gates components
     vector<Gates> components;
 
-    // Open the file
     ifstream file(filename);
-    // Check if the file is successfully opened
     if (!file.is_open())
     {
         cerr << "Error opening file: " << filename << endl;
-        return components; // Return an empty vector if the file cannot be opened
+        exit(10);
     }
 
     string line;
-    // Read each line from the file
+    int lineCount = 1;
     while (getline(file, line))
     {
-        // Create a string stream to parse the line
-        istringstream iss(line);
-        string name, outputExpression;
+        // Split the line by commas
+        size_t pos = 0;
+        vector<string> parts;
+        while ((pos = line.find(',')) != string::npos)
+        {
+            parts.push_back(line.substr(0, pos));
+            line.erase(0, pos + 1);
+        }
+        parts.push_back(line); // Add the last part
+
+        // Validate the number of parts
+        if (parts.size() != 4)
+        {
+            cerr << "Error: Invalid format in line " << lineCount << " in the library file" << endl;
+            exit(1);
+        }
+
+        // Extract components from parts
+        string name = parts[0];
         int numInputs, delayPs;
-        char comma;
-        // Read the gate name, number of inputs, output expression, and delay from the line
-        if (!(iss >> name >> numInputs >> comma >> outputExpression >> delayPs))
+        string outputExpression;
+        try
+        {
+            numInputs = stoi(parts[1]);
+            outputExpression = parts[2];
+            delayPs = stoi(parts[3]);
+        }
+        catch (const exception &e)
         {
             cerr << "Error parsing line: " << line << endl;
-            continue; // Skip to the next line if parsing fails
+            exit(2);
         }
-        // Remove the trailing comma from the gate name if necessary
-        if (name.at(name.length() - 1) == ',')
-            name.erase(name.length() - 1, 1);
-        while (name.at(0) == ' ')
+        if (delayPs < 0 || numInputs < 0)
         {
-            name.erase(0, 1);
+            cerr << "Error in numbers in the library. Number is negative in line: " << line << endl;
+            exit(2);
         }
-        // Remove the trailing comma from the output expression if necessary
-        if (outputExpression.at(outputExpression.length() - 1) == ',')
-            outputExpression.erase(outputExpression.length() - 1, 1);
-        while (outputExpression.at(0) == ' ')
-        {
-            outputExpression.erase(0, 1);
-        }
-        // Create a Gates object with the parsed information and add it to the components vector
+        name = removeSpaces(name);
+        outputExpression = removeSpaces(outputExpression);
+        name = removeCommas(name);
+        outputExpression = removeCommas(outputExpression);
+
         components.push_back({name, numInputs, outputExpression, delayPs});
+        lineCount++;
     }
-    // Close the file
+
     file.close();
-    // Return the vector containing parsed Gates components
     return components;
 }
 
@@ -81,70 +118,59 @@ vector<Stimuli> parseStimuliFile(const string &filename) // Reads from .stim fil
     if (!file.is_open())
     {
         cerr << "Error: Unable to open file " << filename << endl;
+        exit(10);
         return stimuli;
     }
 
     string line;
+    int lineCount = 1;
     while (getline(file, line))
     {
-        istringstream iss(line);
-        string token;
         if (line.empty() || line[0] == ' ') // Skip lines that are empty or start with a whitespace character
             continue;
-        // Parse time stamp
-        if (!getline(iss, token, ','))
+
+        // Split the line by commas
+        size_t pos = 0;
+        vector<string> parts;
+        while ((pos = line.find(',')) != string::npos)
         {
-            cerr << "Error: Missing timestamp in line: " << line << endl;
-            continue; // Skip to the next line
+            parts.push_back(line.substr(0, pos));
+            line.erase(0, pos + 1);
         }
-        int timeStamp;
-        try
+        parts.push_back(line); // Add the last part
+
+        // Validate the number of parts
+        if (parts.size() != 3)
         {
-            timeStamp = stoi(token);
-        }
-        catch (...)
-        {
-            cerr << "Error: Invalid timestamp in line: " << line << endl;
-            continue; // Skip to the next line
+            cerr << "Error: Invalid format in line: " << lineCount << endl;
+            exit(3);
         }
 
-        // Parse input
-        if (!getline(iss, token, ','))
-        {
-            cerr << "Error: Missing input in line: " << line << endl;
-            continue; // Skip to the next line
-        }
-        string input = token;
-
-        // Parse logic value
-        if (!getline(iss, token, ','))
-        {
-            cerr << "Error: Missing logic value in line: " << line << endl;
-            continue; // Skip to the next line
-        }
-        bool logicValue;
+        // Extract components from parts
+        int timeStamp, logicValue;
+        string input;
         try
         {
-            logicValue = stoi(token);
+            timeStamp = stoi(parts[0]);
+            input = parts[1];
+            logicValue = stoi(parts[2]);
         }
-        catch (...)
+        catch (const exception &e)
         {
-            cerr << "Error: Invalid logic value in line: " << line << endl;
-            continue; // Skip to the next line
+            cerr << "Error parsing line: " << lineCount << endl;
+            exit(4);
         }
 
         // Validate logic value
         if (logicValue != 0 && logicValue != 1)
         {
-            cerr << "Error: Invalid logic value (must be 0 or 1) in line: " << line << endl;
+            cerr << "Error: Invalid logic value (must be 0 or 1) in line: " << lineCount << endl;
             continue; // Skip to the next line
         }
-        while (input.at(0) == ' ')
-        {
-            input.erase(0, 1);
-        }
         // Add stimulus to the vector
+        input = removeSpaces(input);
         stimuli.push_back({timeStamp, input, logicValue});
+        lineCount++;
     }
 
     file.close();
@@ -327,7 +353,165 @@ int getmin(vector<wire> V, const vector<pair<string, vector<wire>>> &vec)
     }
     return temp;
 }
+bool isoperator(char c)
+{
+    return (c == '(' || c == ')' || c == '&' || c == '~' || c == '!' || c == '|' || c == '^');
+}
 
+int precedence(char c)
+{
+    switch (c)
+    {
+    case '(':
+    case ')':
+        return 0;
+    case '!':
+    case '~':
+        return 3;
+    case '&':
+        return 2;
+    case '|':
+        return 1;
+    }
+    return -1;
+}
+int extractinput(string expression, int &pos)
+{
+    string operand = "";
+    cout << expression[pos] << endl;
+    while (pos < expression.length() && !isoperator(expression[pos + 1]))
+    {
+        operand += expression[++pos]; // incrementing to get the first char after I
+        cout << operand << endl;
+    }
+    return stoi(operand);
+}
+bool boolevaluateOR(bool a, bool b)
+{
+    return (a || b);
+}
+bool computinglogic2(vector<Gates> library, vector<pair<string, vector<wire>>> ioComponents)
+{
+    string expression;
+    for (auto it = ioComponents.begin(); it != ioComponents.end(); it++)
+    {
+        int position = -1;
+        int j = 0;
+        stack<bool> operands;
+        stack<char> operators;
+        for (int i = 0; i < library.size(); i++)
+        {
+            if (it->first == library[i].getGateName())
+            {
+                position = i;
+                expression = library[i].getOutputExpression();
+                cout << expression << endl;
+            }
+        }
+        while (j < expression.length())
+        {
+            char c = expression[j];
+            if (!isoperator(c))
+            {
+                int x = extractinput(expression, j);
+                operands.push(getWire(ioComponents, it->second[x].name));
+            }
+            if (c == '(')
+            {
+                operators.push(c);
+            }
+            else if (c == ')')
+            {
+                while (operators.top() != '(')
+                {
+                    bool b;
+                    bool a = operands.top();
+                    operands.pop();
+                    switch (operators.top())
+                    {
+                    case '~':
+                    case '!':
+                        operands.push(!a);
+                        break;
+                    case '&':
+                        b = operands.top();
+                        operands.pop();
+                        operands.push(a && b);
+                        cout<<operands.top();
+                        break;
+                    case '|':
+                        b = operands.top();
+                        operands.pop();
+                        operands.push(boolevaluateOR);
+                        break;
+                    }
+                    operators.pop();
+                }
+                operators.pop();
+            }
+            else if (isoperator(c))
+            {
+                bool b;
+                while (!operators.empty() && precedence(c) <= precedence(operators.top()))
+                {
+                    bool a = operands.top();
+                    operands.pop();
+                    switch (operators.top())
+                    {
+                    case '~':
+                    case '!':
+                        operands.push(!a);
+                        break;
+                    case '&':
+                        b = operands.top();
+                        operands.pop();
+                        operands.push(a && b);
+                        break;
+                    case '|':
+                        b = operands.top();
+                        operands.pop();
+                        operands.push(a||b);
+                        break;
+                    }
+                    operators.pop();
+                }
+                operators.push(c);
+            }
+            j++;
+        }
+        while (!operators.empty())
+        {
+            bool b;
+            bool a = operands.top();
+            operands.pop();
+            switch (operators.top())
+            {
+            case '~':
+            case '!':
+                operands.push(!a);
+                break;
+            case '&':
+                b = operands.top();
+                operands.pop();
+                operands.push(a && b);
+                break;
+            case '|':
+                b = operands.top();
+                operands.pop();
+                operands.push(a||b);
+                cout<<operands.top();
+                break;
+            }
+            operators.pop();
+        }
+        if (!operands.empty())
+        {
+            it->second[0].type = operands.top();
+            it->second[0].delay=library[position].getDelayTime();
+            cout<<"Gate nameee "<<library[position].getGateName()<<"  "<<library[position].getDelayTime()<<endl;;
+        }
+    }
+}
 bool computingLogic(vector<pair<string, vector<wire>>> ioComponents, vector<Gates> libComponents, vector<Stimuli> stimuli, vector<int> timeScale, vector<Stimuli> &F_output) // send the delay vector to the function
 {
     int currentTimeScale = 0;
@@ -727,45 +911,14 @@ bool compareStimuli(const Stimuli &a, const Stimuli &b)
 
 int main()
 {
-    vector<Gates> libComponents = parseLibraryFile("new/cells.lib");
-    vector<Stimuli> stimuli = parseStimuliFile("new/1.stim");
-    vector<int> timeScale;
-    vector<Stimuli> output;
-    for (int i = 0; i < stimuli.size(); i++)
-    {
-        timeScale.push_back(stimuli[i].getTimeStamp());
-    }
-    int OScale = scale(timeScale);
+    vector<Gates> libComponents = parseLibraryFile("Tests/libFile.lib");
     vector<pair<string, vector<wire>>> mp;
+    vector<Stimuli> stimuli = parseStimuliFile("Tests/TestCircuit5/stimFileCir5.stim");
     int i = 0;
-    parseCircuitFile("new/1.cir", mp, stimuli);
-    ofstream outfile("new/output.sim");
-    if (!outfile.is_open())
+    parseCircuitFile("Tests/TestCircuit5/testCircuit5.cir", mp, stimuli);
+    for (int i = 0; i < libComponents.size(); i++)
     {
-        cerr << "Error opening output file" << endl;
-        return 1;
+        cout << libComponents[i].getGateName() << libComponents[i].getNumOfInputs() << libComponents[i].getOutputExpression() << libComponents[i].getDelayTime() << endl;
     }
-    for (auto it = mp.begin(); it != mp.end(); it++)
-    {
-        cout << i << " " << it->first << " ";
-        for (int i = 0; i < it->second.size(); i++)
-        {
-            cout << it->second[i].name << " ";
-        }
-        cout << endl;
-        i++;
-    }
-    cout << computingLogic(mp, libComponents, stimuli, timeScale, output);
-
-    std::sort(output.begin(), output.end(), compareStimuli);
-
-    for (int i = 0; i < output.size(); i++)
-    {
-        if (output[i].getTimeStamp() != output[i + 1].getTimeStamp() || output[i].getInput() != output[i + 1].getInput() || output[i].getLogicValue() != output[i + 1].getLogicValue() )
-        {
-            outfile << output[i].getTimeStamp() << " " << output[i].getInput() << " " << output[i].getLogicValue() << endl;
-        }
-    }
-
-    outfile.close();
+    computinglogic2(libComponents, mp);
 }
