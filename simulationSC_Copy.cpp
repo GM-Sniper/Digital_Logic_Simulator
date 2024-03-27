@@ -3,20 +3,20 @@
 #include <string>
 #include <vector>
 #include <sstream>
-#include <cstdlib>
 #include <cctype>
 #include <stack>
 #include <cmath>
 #include <algorithm>
+#include <cstdlib>
 #include "Circuit Classes/Stimuli.h"
 #include "Circuit Classes/Gates.h"
-
 using namespace std;
 struct wire // Struct for wires is used to instantiate wires that have common attributes like name, delay,and boolean type.
 {
     string name;
     bool type;
     int delay;
+    int actualdelay = 0;
     stack<int> initial;
     wire(string n, int t, int d = 0) : name(n), type(t), delay(d) {}
 };
@@ -148,7 +148,7 @@ vector<Stimuli> parseStimuliFile(const string &filename) // Reads from .stim fil
         }
 
         // Extract components from parts
-        int timeStamp; 
+        int timeStamp;
         bool logicValue;
         string input;
         try
@@ -191,7 +191,7 @@ bool checkGates(const string &str, const vector<Gates> &gates)
     return false;
 }
 
-bool parseCircuitFile(const string &filename, vector<pair<string, vector<wire>>> &ioComponents, vector<Stimuli> stimuli,vector<Gates> gates)
+bool parseCircuitFile(const string &filename, vector<pair<string, vector<wire>>> &ioComponents, vector<Stimuli> stimuli, vector<Gates> gates)
 {
     string input;
     vector<string> inputs2;
@@ -298,7 +298,7 @@ bool parseCircuitFile(const string &filename, vector<pair<string, vector<wire>>>
                     }
                 }
                 // Add the gate and its corresponding vector of wires to the ioComponents vector
-               if (checkGates(type, gates))
+                if (checkGates(type, gates))
                 {
                     ioComponents.push_back(make_pair(type, ioVector));
                 }
@@ -343,7 +343,7 @@ int getDelay(const vector<pair<string, vector<wire>>> &vec, const string &wireNa
             if (it->second[i].name == wireName)
             {
                 // Return the delay if the wire is found
-                return it->second[i].delay;
+                return it->second[i].actualdelay;
             }
         }
     }
@@ -408,223 +408,138 @@ int extractinput(string expression, int &pos)
     }
     return stoi(operand);
 }
-bool boolevaluateOR(bool a, bool b)
+bool findor(const string &x)
 {
-    return (a || b);
-}
-void computinglogic2(vector<Gates> library, vector<pair<string, vector<wire>>> ioComponents)
-{
-    string expression;
-    for (auto it = ioComponents.begin(); it != ioComponents.end(); it++)
+    if ((x.find("OR") != string::npos || x.find("or") != string::npos) && (x.find("XOR") == string::npos || x.find("xor") == string::npos))
     {
-        int position = -1;
-        int j = 0;
-        stack<bool> operands;
-        stack<char> operators;
-        for (int i = 0; i < library.size(); i++)
-        {
-            if (it->first == library[i].getGateName())
-            {
-                position = i;
-                expression = library[i].getOutputExpression();
-                cout << expression << endl;
-            }
-        }
-        while (j < expression.length())
-        {
-            char c = expression[j];
-            if (!isoperator(c))
-            {
-                int x = extractinput(expression, j);
-                operands.push(getWire(ioComponents, it->second[x].name));
-            }
-            if (c == '(')
-            {
-                operators.push(c);
-            }
-            else if (c == ')')
-            {
-                while (operators.top() != '(')
-                {
-                    bool b;
-                    bool a = operands.top();
-                    operands.pop();
-                    switch (operators.top())
-                    {
-                    case '~':
-                    case '!':
-                        operands.push(!a);
-                        break;
-                    case '&':
-                        b = operands.top();
-                        operands.pop();
-                        operands.push(a && b);
-                        cout<<operands.top();
-                        break;
-                    case '|':
-                        b = operands.top();
-                        operands.pop();
-                        operands.push(a||b);
-                        break;
-                    }
-                    operators.pop();
-                }
-                operators.pop();
-            }
-            else if (isoperator(c))
-            {
-                bool b;
-                while (!operators.empty() && precedence(c) <= precedence(operators.top()))
-                {
-                    bool a = operands.top();
-                    operands.pop();
-                    switch (operators.top())
-                    {
-                    case '~':
-                    case '!':
-                        operands.push(!a);
-                        break;
-                    case '&':
-                        b = operands.top();
-                        operands.pop();
-                        operands.push(a && b);
-                        break;
-                    case '|':
-                        b = operands.top();
-                        operands.pop();
-                        operands.push(a||b);
-                        break;
-                    }
-                    operators.pop();
-                }
-                operators.push(c);
-            }
-            j++;
-        }
-        while (!operators.empty())
-        {
-            bool b;
-            bool a = operands.top();
-            operands.pop();
-            switch (operators.top())
-            {
-            case '~':
-            case '!':
-                operands.push(!a);
-                break;
-            case '&':
-                b = operands.top();
-                operands.pop();
-                operands.push(a && b);
-                break;
-            case '|':
-                b = operands.top();
-                operands.pop();
-                operands.push(a||b);
-                cout<<operands.top();
-                break;
-            }
-            operators.pop();
-        }
-        if (!operands.empty())
-        {
-            it->second[0].type = operands.top();
-            it->second[0].delay=library[position].getDelayTime();
-            cout<<"Gate nameee "<<library[position].getGateName()<<"  "<<library[position].getDelayTime()<<endl;;
-        }
+        return true;
+    }
+    else
+    {
+        return false;
     }
 }
-bool computingLogic(vector<pair<string, vector<wire>>> ioComponents, vector<Gates> libComponents, vector<Stimuli> stimuli, vector<int> timeScale, vector<Stimuli> &F_output) // send the delay vector to the function
+void computinglogic2(vector<Gates> library, vector<pair<string, vector<wire>>> ioComponents, vector<Stimuli> stimuli, vector<int> timeScale, vector<Stimuli> &F_output)
 {
-    int currentTimeScale = 0;
-    bool output = false;
-    int scaleIndex = 0;
-    while (scaleIndex <= timeScale.size())
+    string expression;
+    int currenttimescale = 0;
+    int scaleindex = 0;
+    while (scaleindex <= timeScale.size())
     {
         for (auto it = ioComponents.begin(); it != ioComponents.end(); it++)
         {
-
             int position = -1;
-            for (int i = 0; i < libComponents.size(); i++)
+            int j = 0;
+            stack<bool> operands;
+            stack<char> operators;
+            for (int i = 0; i < library.size(); i++)
             {
-                if (it->first == libComponents[i].getGateName())
+                if (it->first == library[i].getGateName())
                 {
                     position = i;
+                    expression = library[i].getOutputExpression();
+                    cout << expression << endl;
+                }
+            }
+            while (j < expression.length())
+            {
+                char c = expression[j];
+                if (!isoperator(c))
+                {
+                    int x = extractinput(expression, j);
+                    operands.push(getWire(ioComponents, it->second[x].name));
+                }
+                if (c == '(')
+                {
+                    operators.push(c);
+                }
+                else if (c == ')')
+                {
+                    while (operators.top() != '(')
+                    {
+                        bool b;
+                        bool a = operands.top();
+                        operands.pop();
+                        switch (operators.top())
+                        {
+                        case '~':
+                        case '!':
+                            operands.push(!a);
+                            break;
+                        case '&':
+                            b = operands.top();
+                            operands.pop();
+                            operands.push(a && b);
+                            cout << operands.top();
+                            break;
+                        case '|':
+                            b = operands.top();
+                            operands.pop();
+                            operands.push(a || b);
+                            break;
+                        }
+                        operators.pop();
+                    }
+                    operators.pop();
+                }
+                else if (isoperator(c))
+                {
+                    bool b;
+                    while (!operators.empty() && precedence(c) <= precedence(operators.top()))
+                    {
+                        bool a = operands.top();
+                        operands.pop();
+                        switch (operators.top())
+                        {
+                        case '~':
+                        case '!':
+                            operands.push(!a);
+                            break;
+                        case '&':
+                            b = operands.top();
+                            operands.pop();
+                            operands.push(a && b);
+                            break;
+                        case '|':
+                            b = operands.top();
+                            operands.pop();
+                            operands.push(a || b);
+                            break;
+                        }
+                        operators.pop();
+                    }
+                    operators.push(c);
+                }
+                j++;
+            }
+            while (!operators.empty())
+            {
+                bool b;
+                bool a = operands.top();
+                operands.pop();
+                switch (operators.top())
+                {
+                case '~':
+                case '!':
+                    operands.push(!a);
+                    break;
+                case '&':
+                    b = operands.top();
+                    operands.pop();
+                    operands.push(a && b);
+                    break;
+                case '|':
+                    b = operands.top();
+                    operands.pop();
+                    operands.push(a || b);
+                    cout << operands.top();
                     break;
                 }
+                operators.pop();
             }
-            if (it->first == "NOT")
+            if (!operands.empty())
             {
-                // Print the gate type for debugging purposes
-                cout << "Not Gate " << endl;
-
-                // Print input wire and its boolean state
-                cout << "Input : " << it->second[1].name << "  Boolean state : " << getWire(ioComponents, it->second[1].name) << endl;
-
-                // Apply NOT operation to input wire and update output wire
-                it->second[0].type = !(it->second[1].type);
-
-                // Print output wire and its boolean state
-                cout << "Output : \n"
-                     << it->second[0].name << "  Boolean state : " << getWire(ioComponents, it->second[0].name) << endl;
-
-                // Check if the output wire has been initialized
-                if (it->second[0].initial.empty())
-                {
-                    // If not, push the current state to the initial stack
-                    it->second[0].initial.push(getWire(ioComponents, it->second[0].name));
-                }
-
-                else if (it->second[0].initial.top() != it->second[0].type)
-                {
-                    // If the current state is different from the initial state, calculate delay and update
-                    it->second[0].delay = (getDelay(ioComponents, it->second[1].name)) + libComponents[position].getDelayTime();
-                    F_output.push_back({getDelay(ioComponents, it->second[0].name), it->second[0].name, it->second[0].type});
-
-                    // Push the current state to the initial stack
-                    it->second[0].initial.push(getWire(ioComponents, it->second[0].name));
-                }
-                // else
-                // {
-                //     // Clear the initial state stack if the state remains unchanged
-                //     while (it->second[0].initial.size() != 0)
-                //     {
-                //         it->second[0].initial.pop();
-                //     }
-                // }
-                /// S & N &V
-                // if (input.substr(0, 3) == "AN
-                // Print a separator for clarity
-                cout << "===============================" << endl;
-            }
-            else if (it->first.substr(0, 3) == "AND")
-            {
-                // Print the gate type for debugging purposes
-                cout << "AND Gate " << endl;
-
-                // Print input wires and their boolean states
-                // Apply AND operation to input wires and update output wire
-                // it->second[0].type = (getWire(ioComponents, it->second[1].name) & getWire(ioComponents, it->second[2].name));
-
-                for (int i = 1; i < it->second.size(); i++)
-                {
-                    if (i == 1)
-                    {
-                        it->second[0].type = getWire(ioComponents, it->second[i].name) & getWire(ioComponents, it->second[++i].name);
-                        cout << "Inputs : \n"
-                             << "1) " << it->second[1].name << " Boolean state : " << getWire(ioComponents, it->second[1].name) << endl;
-                        cout << "2) " << it->second[2].name << " Boolean state : " << getWire(ioComponents, it->second[2].name) << endl;
-                    }
-                    else
-                    {
-                        it->second[0].type = it->second[0].type & getWire(ioComponents, it->second[i].name);
-                        cout << i << ") " << it->second[i].name << " Boolean state : " << getWire(ioComponents, it->second[i].name) << endl;
-                    }
-                }
-
-                // Print output wire and its boolean state
-                cout << "Output : \n"
-                     << it->second[0].name << "  Boolean state : " << getWire(ioComponents, it->second[0].name) << endl;
+                it->second[0].type = operands.top();
                 // Check if the output wire has been initialized
                 if (it->second[0].initial.empty())
                 {
@@ -633,224 +548,42 @@ bool computingLogic(vector<pair<string, vector<wire>>> ioComponents, vector<Gate
                 }
                 else if (it->second[0].initial.top() != it->second[0].type)
                 {
+
                     // If the current state is different from the initial state, calculate delay and update
 
-                    it->second[0].delay = getmax(it->second, ioComponents) + libComponents[position].getDelayTime();
+                    // if (findor(library[position].getGateName()))
+                    // {
+                    //     it->second[0].delay = getmin(it->second, ioComponents) + library[position].getDelayTime();
+                    // }
+                    // else
+                    // {
+
+                    it->second[0].actualdelay = getmax(it->second, ioComponents) + library[position].getDelayTime();
+                    // }
 
                     F_output.push_back({getDelay(ioComponents, it->second[0].name), it->second[0].name, it->second[0].type});
 
                     // Push the current state to the initial stack
                     it->second[0].initial.push(getWire(ioComponents, it->second[0].name));
                 }
-
-                // Print a separator for clarity
-                cout << "===============================" << endl;
             }
-            else if (it->first.substr(0, 2) == "OR")
-            {
-                // Display gate type
-                cout << "OR Gate " << endl;
-
-                // Display inputs and their boolean states
-
-                // Apply OR operation to input wires and update output wire
-                // it->second[0].type = (getWire(ioComponents, it->second[1].name) | getWire(ioComponents, it->second[2].name));
-
-                for (int i = 1; i < it->second.size(); i++)
-                {
-                    if (i == 1)
-                    {
-                        it->second[0].type = !getWire(ioComponents, it->second[i].name) & !getWire(ioComponents, it->second[++i].name);
-                        cout << "Inputs : \n"
-                             << "1) " << it->second[1].name << " Boolean state : " << getWire(ioComponents, it->second[1].name) << endl;
-                        cout << "2) " << it->second[2].name << " Boolean state : " << getWire(ioComponents, it->second[2].name) << endl;
-                    }
-                    else
-                    {
-                        it->second[0].type = !(it->second[0].type) & !getWire(ioComponents, it->second[i].name);
-                        cout << i << ") " << it->second[i].name << " Boolean state : " << getWire(ioComponents, it->second[i].name) << endl;
-                    }
-                }
-
-                // Display output and its boolean state
-                cout << "Output : \n"
-                     << it->second[0].name << "  Boolean state : " << getWire(ioComponents, it->second[0].name) << endl;
-
-                // Check if the output wire has been initialized
-                if (it->second[0].initial.empty())
-                {
-                    // If not, push the boolean state to the stack
-                    it->second[0].initial.push(getWire(ioComponents, it->second[0].name));
-                }
-                else if (it->second[0].initial.top() != it->second[0].type)
-                {
-                    // If the top of the stack is different from the current boolean state, update delay and push to stack
-
-                    it->second[0].delay = getmin(it->second, ioComponents) + libComponents[position].getDelayTime();
-
-                    F_output.push_back({getDelay(ioComponents, it->second[0].name), it->second[0].name, it->second[0].type});
-
-                    it->second[0].initial.push(getWire(ioComponents, it->second[0].name));
-                }
-
-                // Separator for readability
-                cout << "===============================" << endl;
-            }
-            else if (it->first.substr(0, 4) == "NAND")
-            {
-                // Display gate type
-                cout << "NAND Gate " << endl;
-
-                // Display inputs and their boolean states
-                for (int i = 1; i < it->second.size(); i++)
-                {
-                    if (i == 1)
-                    {
-                        it->second[0].type = !getWire(ioComponents, it->second[i].name) | !getWire(ioComponents, it->second[++i].name);
-                        cout << "Inputs : \n"
-                             << "1) " << it->second[1].name << " Boolean state : " << getWire(ioComponents, it->second[1].name) << endl;
-                        cout << "2) " << it->second[2].name << " Boolean state : " << getWire(ioComponents, it->second[2].name) << endl;
-                    }
-                    else
-                    {
-                        it->second[0].type = (it->second[0].type) | !getWire(ioComponents, it->second[i].name);
-                        cout << i << ") " << it->second[i].name << " Boolean state : " << getWire(ioComponents, it->second[i].name) << endl;
-                    }
-                }
-
-                // Apply NAND operation to input wires and update output wire
-                it->second[0].type = !(getWire(ioComponents, it->second[1].name) & getWire(ioComponents, it->second[2].name));
-
-                // Display output and its boolean state
-                cout << "Output : \n"
-                     << it->second[0].name << "  Boolean state : " << getWire(ioComponents, it->second[0].name) << endl;
-
-                // Check if the output wire has been initialized
-                if (it->second[0].initial.empty())
-                {
-                    // If not, push the boolean state to the stack
-                    it->second[0].initial.push(getWire(ioComponents, it->second[0].name));
-                }
-                else if (it->second[0].initial.top() != it->second[0].type)
-                {
-                    // If the top of the stack is different from the current boolean state, update delay and push to stack
-
-                    it->second[0].delay = getmax(it->second, ioComponents) + libComponents[position].getDelayTime();
-
-                    F_output.push_back({getDelay(ioComponents, it->second[0].name), it->second[0].name, it->second[0].type});
-                    it->second[0].initial.push(getWire(ioComponents, it->second[0].name));
-                }
-
-                // Separator for readability
-                cout << "===============================" << endl;
-            }
-            else if (it->first.substr(0, 3) == "NOR")
-            {
-                // Display gate type
-                cout << "NOR Gate " << endl;
-
-                for (int i = 1; i < it->second.size(); i++)
-                {
-                    if (i == 1)
-                    {
-                        it->second[0].type = !getWire(ioComponents, it->second[i].name) & !getWire(ioComponents, it->second[++i].name);
-                        cout << "Inputs : \n"
-                             << "1) " << it->second[1].name << " Boolean state : " << getWire(ioComponents, it->second[1].name) << endl;
-                        cout << "2) " << it->second[2].name << " Boolean state : " << getWire(ioComponents, it->second[2].name) << endl;
-                    }
-                    else
-                    {
-                        it->second[0].type = (it->second[0].type) & !getWire(ioComponents, it->second[i].name);
-                        cout << i << ") " << it->second[i].name << " Boolean state : " << getWire(ioComponents, it->second[i].name) << endl;
-                    }
-                }
-
-                // Display output and its boolean state
-                cout << "Output : \n"
-                     << it->second[0].name << "  Boolean state : " << getWire(ioComponents, it->second[0].name) << endl;
-
-                // Check if the output wire has been initialized
-                if (it->second[0].initial.empty())
-                {
-                    // If not, push the boolean state to the stack
-                    it->second[0].initial.push(getWire(ioComponents, it->second[0].name));
-                }
-                else if (it->second[0].initial.top() != it->second[0].type)
-                {
-                    // If the top of the stack is different from the current boolean state, update delay and push to stack
-
-                    it->second[0].delay = getmax(it->second, ioComponents) + libComponents[position].getDelayTime();
-
-                    F_output.push_back({getDelay(ioComponents, it->second[0].name), it->second[0].name, it->second[0].type});
-                    it->second[0].initial.push(getWire(ioComponents, it->second[0].name));
-                }
-
-                // Separator for readability
-                cout << "===============================" << endl;
-            }
-            else if (it->first.substr(0, 3) == "XOR")
-            {
-                // Display gate type
-                cout << "XOR Gate " << endl;
-
-                // Display inputs and their boolean states
-                for (int i = 1; i < it->second.size(); i++)
-                {
-                    if (i == 1)
-                    {
-                        it->second[0].type = getWire(ioComponents, it->second[i].name) ^ getWire(ioComponents, it->second[++i].name);
-                        cout << "Inputs : \n"
-                             << "1) " << it->second[1].name << " Boolean state : " << getWire(ioComponents, it->second[1].name) << endl;
-                        cout << "2) " << it->second[2].name << " Boolean state : " << getWire(ioComponents, it->second[2].name) << endl;
-                    }
-                    else
-                    {
-                        it->second[0].type = (it->second[0].type) ^ getWire(ioComponents, it->second[i].name);
-                        cout << i << ") " << it->second[i].name << " Boolean state : " << getWire(ioComponents, it->second[i].name) << endl;
-                    }
-                }
-
-                // Display output and its boolean state
-                cout << "Output : \n"
-                     << it->second[0].name << "  Boolean state : " << getWire(ioComponents, it->second[0].name) << endl;
-
-                // Check if the output wire has been initialized
-                if (it->second[0].initial.empty())
-                {
-                    // If not, push the boolean state to the stack
-                    it->second[0].initial.push(getWire(ioComponents, it->second[0].name));
-                }
-                else if (it->second[0].initial.top() != it->second[0].type)
-                {
-                    // If the top of the stack is different from the current boolean state, update delay and push to stack
-                    it->second[0].delay = getmax(it->second, ioComponents) + libComponents[position].getDelayTime();
-                    F_output.push_back({getDelay(ioComponents, it->second[0].name), it->second[0].name, it->second[0].type});
-                    it->second[0].initial.push(getWire(ioComponents, it->second[0].name));
-                }
-
-                // Separator for readability
-                cout << "===============================" << endl;
-            }
-            output = it->second[0].type;
         }
-        if (scaleIndex == 0)
+        if (scaleindex == 0)
         {
-            // If it's the first index, set the current time scale to the first value in the time scale vector
-            currentTimeScale = timeScale.at(scaleIndex);
-            scaleIndex++;
+            currenttimescale = timeScale.at(scaleindex);
+            scaleindex++;
         }
         else
         {
             // If it's not the first index
-            if (scaleIndex != timeScale.size())
+            if (scaleindex != timeScale.size())
             {
                 // Update the current time scale by adding the difference between the current and previous time scales
-                currentTimeScale += (timeScale.at(scaleIndex) - timeScale.at(scaleIndex - 1));
+                currenttimescale += (timeScale.at(scaleindex) - timeScale.at(scaleindex - 1));
             }
-            scaleIndex++;
+            scaleindex++;
         }
 
-        // Loop through all components in the input/output components map
         for (auto it = ioComponents.begin(); it != ioComponents.end(); it++)
         {
             // Loop through all wires in the current component
@@ -869,8 +602,9 @@ bool computingLogic(vector<pair<string, vector<wire>>> ioComponents, vector<Gate
                         if (currentWire.delay != 0)
                         {
                             // If the current time scale matches the delay and it's not the last scale index
-                            if (currentTimeScale == currentWire.delay && scaleIndex != timeScale.size() + 1)
+                            if (currenttimescale == currentWire.delay && scaleindex != timeScale.size() + 1)
                             {
+                                currentWire.actualdelay = currentWire.delay;
                                 // Toggle the type of the wire
                                 if (currentWire.type == 1)
                                 {
@@ -886,17 +620,9 @@ bool computingLogic(vector<pair<string, vector<wire>>> ioComponents, vector<Gate
                         }
                     }
                 }
-
-                // Check if the wire's type is 1 (true)
-                if (currentWire.type == 1)
-                    output = true;
             }
         }
-        // increment the time scale by the difference between two consicutive elements in the vector
-        // if i=1, currentTimeScale  = vector.at(i)-0
-        // else currentTimeScale = vector.at(i)-vector.at(i-1)
     }
-    return output;
 }
 int findGCD(int a, int b)
 {
@@ -931,37 +657,64 @@ bool compareStimuli(const Stimuli &a, const Stimuli &b)
     return a.getTimeStamp() < b.getTimeStamp();
 }
 
-int main(int argc, char* argv[])
+int main(int argc, char *argv[])
 {
-    if (argc < 4) {
-    std::cerr << "Error: Please provide a library file, circuit file, and stimuli file as arguments." << std::endl;
-    return 1; // Exit with an error code
-  }
-  const char* libraryPath = argv[1];
-  const char* circuitPath = argv[2];
-  const char* stimuliPath = argv[3];
-
+    if (argc < 6)
+    {
+        std::cerr << "Error: Please provide a library file, circuit file, and stimuli file as arguments." << std::endl;
+        return 1; // Exit with an error code
+    }
+    const char *libraryPath = argv[1];
+    const char *circuitPath = argv[2];
+    const char *stimuliPath = argv[3];
+    const char *outputpath = argv[4];
+    const char *commonoutputpath = argv[5];
     vector<Gates> libComponents = parseLibraryFile(libraryPath);
-    vector<pair<string, vector<wire>>> mp;
     vector<Stimuli> stimuli = parseStimuliFile(stimuliPath);
-    int i = 0;
-   if (parseCircuitFile(circuitPath, mp, stimuli, libComponents))
+    vector<pair<string, vector<wire>>> mp;
+    vector<int> timeScale;
+    vector<Stimuli> output;
+    for (int i = 0; i < stimuli.size(); i++)
+    {
+        timeScale.push_back(stimuli[i].getTimeStamp());
+    }
+    int OScale = scale(timeScale);
+
+    if (parseCircuitFile(circuitPath, mp, stimuli, libComponents))
     {
         for (int i = 0; i < libComponents.size(); i++)
         {
             cout << libComponents[i].getGateName() << libComponents[i].getNumOfInputs() << libComponents[i].getOutputExpression() << libComponents[i].getDelayTime() << endl;
         }
-         computinglogic2(libComponents, mp);
+        computinglogic2(libComponents, mp, stimuli, timeScale, output);
     }
-    else 
+    else
     {
         cout << "Error: There is a gate in the circuit that has not been initialized in the library file.\n";
     }
-    //"Tests/libFile.lib"
-    //"Tests/TestCircuit5/stimFileCir5.stim"
-    //"Tests/TestCircuit5/testCircuit5.cir"
-    //simulationSC_Copy
-    //E:/ENG Mohamed/digital desgin repo/Digital_Design_Project_1
-    //./simulationSC_Copy "E:\ENG Mohamed\digital desgin repo\Digital_Design_Project_1\Tests\libFile.lib" "E:\ENG Mohamed\digital desgin repo\Digital_Design_Project_1\Tests\TestCircuit1\stimFileCirc1.stim" "E:\ENG Mohamed\digital desgin repo\Digital_Design_Project_1\Tests\TestCircuit1\testCircuit1.cir"
+    ofstream outfile(outputpath);
+    ofstream out(commonoutputpath);
+    if (!out.is_open())
+    {
+        cout << "Error opening file 'out'" << endl;
+        return 1; // Exit with an error code
+    }
+    if (!outfile.is_open())
+    {
+        cout << "Error opening file 'outfile'" << endl;
+        return 1; // Exit with an error code
+    }
+    std::sort(output.begin(), output.end(), compareStimuli);
 
+    for (int i = 0; i < output.size(); i++)
+    {
+        if (output[i].getTimeStamp() != output[i + 1].getTimeStamp() || output[i].getInput() != output[i + 1].getInput() || output[i].getLogicValue() != output[i + 1].getLogicValue())
+        {
+            outfile << output[i].getTimeStamp() << " " << output[i].getInput() << " " << output[i].getLogicValue() << endl;
+            out << output[i].getTimeStamp() << " " << output[i].getInput() << " " << output[i].getLogicValue() << endl;
+        }
+    }
+    outfile.close();
+    out.close();
+    system("plot.py");
 }

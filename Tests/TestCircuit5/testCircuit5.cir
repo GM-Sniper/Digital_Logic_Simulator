@@ -9,5 +9,5 @@ G1, AND2, W2, W1, A
 G2, AND2, W3, A, C
 G4, NOT, W4, A
 G5, OR2, W5, W4, D
-G6, MAJ3, F, W2, W3, W5
+G6, OR3, F, W2, W3, W5
 
