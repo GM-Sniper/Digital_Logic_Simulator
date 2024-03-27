@@ -51,7 +51,7 @@ vector<Gates> parseLibraryFile(const string &filename) {
     ifstream file(filename);
     if (!file.is_open()) {
         cerr << "Error opening file: " << filename << endl;
-        return components;
+        exit(10);
     }
 
     string line;
@@ -111,6 +111,7 @@ vector<Stimuli> parseStimuliFile(const string &filename) // Reads from .stim fil
     if (!file.is_open())
     {
         cerr << "Error: Unable to open file " << filename << endl;
+        exit(10);
         return stimuli;
     }
 
@@ -354,7 +355,152 @@ int getmin(vector<wire> V, const vector<pair<string, vector<wire>>> &vec)
     }
     return temp;
 }
+bool isoperator(char c)
+{
+    return (c == '(' || c == ')' || c == '&' || c == '~' || c == '!' || c == '|' || c == '^');
+}
 
+int precedence(char c)
+{
+    switch (c)
+    {
+    case '(':
+    case ')':
+        return 4;
+    case '!':
+    case '~':
+        return 3;
+    case '&':
+        return 2;
+    case '|':
+        return 1;
+    case '^':
+        return 0;
+    }
+    return -1;
+}
+int extractinput(string expression, int pos)
+{
+    string operand = "";
+    while (pos < expression.length() && !isoperator(expression[pos]))
+    {
+        operand += expression[++pos]; // incrementing to get the first char after I
+        pos++;
+    }
+    return stoi(operand) - int('0');
+}
+bool computinglogic2(vector<Gates> library, vector<pair<string, vector<wire>>> ioComponents)
+{
+    int j = 0;
+    string expression;
+    for (auto it = ioComponents.begin(); it != ioComponents.end(); it++)
+    {   cout<<"\\\\\\\\\\\\"<<it->first;
+        int position = -1;
+        for (int i = 0; i < library.size(); i++)
+        {
+            if (it->first == library[i].getGateName())
+            {
+                position = i;
+                expression = library[i].getGateName();
+            }
+        }
+        stack<bool> operands;
+        stack<char> operators;
+        while (j < expression.length())
+        {
+            char c = expression[j];
+            if (!isoperator(c))
+            {
+                int x = extractinput(expression, j);
+                operands.push(getWire(ioComponents, it->second[x].name));
+            }
+            if (isoperator(c))
+            {   bool b;
+                while (!operators.empty() && precedence(c) <= precedence(operators.top()))
+                {
+                    bool a = operands.top();
+                    operands.pop();
+                    switch (operators.top())
+                    {
+                    case '~':
+                    case '!':
+                        operands.push(!a);
+                        break;
+                    case '&':
+                        b = operands.top();
+                        operands.pop();
+                        operands.push(a & b);
+                        break;
+                    case '|':
+                        b= operands.top();
+                        operands.pop();
+                        operands.push(a | b);
+                        break;
+                    }
+                    operators.pop();
+                }
+                operators.push(c);
+            }
+            if (c == '(')
+            {
+                operators.push(c);
+            }
+            else if (c == ')')
+            {
+                while (operators.top() != '(')
+                {   bool b;
+                    bool a = operands.top();
+                    operands.pop();
+                    switch (operators.top())
+                    {
+                    case '~':
+                    case '!':
+                        operands.push(!a);
+                        break;
+                    case '&':
+                        b = operands.top();
+                        operands.pop();
+                        operands.push(a & b);
+                        break;
+                    case '|':
+                        b = operands.top();
+                        operands.pop();
+                        operands.push(a | b);
+                        break;
+                    }
+                    operators.pop();
+                }
+                operators.pop();
+            }
+            j++;
+        }
+        while (!operators.empty())
+        {   bool b;
+            bool a = operands.top();
+            operands.pop();
+            switch (operators.top())
+            {
+            case '~':
+            case '!':
+                operands.push(!a);
+                break;
+            case '&':
+                b = operands.top();
+                operands.pop();
+                operands.push(a & b);
+                break;
+            case '|':
+                b = operands.top();
+                operands.pop();
+                operands.push(a | b);
+                break;
+            }
+            operators.pop();
+        }
+        if(!operands.empty())
+        {it->second[0].type=operands.top();}
+    }
+}
 bool computingLogic(vector<pair<string, vector<wire>>> ioComponents, vector<Gates> libComponents, vector<Stimuli> stimuli, vector<int> timeScale, vector<Stimuli> &F_output) // send the delay vector to the function
 {
     int currentTimeScale = 0;
@@ -756,11 +902,13 @@ bool compareStimuli(const Stimuli &a, const Stimuli &b)
 int main()
 {
     vector<Gates> libComponents = parseLibraryFile("Tests/libFile.lib");
+    vector<pair<string, vector<wire>>> mp;
+    vector<Stimuli> stimuli = parseStimuliFile("Tests/TestCircuit1/stimFileCirc1.stim");
+    int i = 0;
+    parseCircuitFile("Tests/TestCircuit1/testCircuit1.cir", mp, stimuli);
     for(int i=0;i<libComponents.size();i++)
     {
         cout<<libComponents[i].getGateName()<<libComponents[i].getNumOfInputs()<<libComponents[i].getOutputExpression()<<libComponents[i].getDelayTime()<<endl;
     }
-
-    // we can use the parseCircuitFile function to know if there is a gate in the circuit
-    // that do not exist in the library file; then we terminate
+    cout<<computinglogic2(libComponents,mp);
 }
