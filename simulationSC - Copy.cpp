@@ -23,11 +23,11 @@ struct wire // Struct for wires is used to instantiate wires that have common at
 string removeSpaces(string spaces)
 {
     string noSpaces;
-    for(int i=0;i<spaces.length();i++)
+    for (int i = 0; i < spaces.length(); i++)
     {
-        if(spaces[i]!=' ')
+        if (spaces[i] != ' ')
         {
-            noSpaces+=spaces[i];
+            noSpaces += spaces[i];
         }
     }
     return noSpaces;
@@ -35,41 +35,45 @@ string removeSpaces(string spaces)
 string removeCommas(string commas)
 {
     string noCommas;
-    for(int i=0;i<commas.length();i++)
+    for (int i = 0; i < commas.length(); i++)
     {
-        if(commas[i]!=',')
+        if (commas[i] != ',')
         {
-            noCommas=noCommas+commas[i];
+            noCommas = noCommas + commas[i];
         }
     }
     return noCommas;
 }
 
-vector<Gates> parseLibraryFile(const string &filename) {
+vector<Gates> parseLibraryFile(const string &filename)
+{
     vector<Gates> components;
 
     ifstream file(filename);
-    if (!file.is_open()) {
+    if (!file.is_open())
+    {
         cerr << "Error opening file: " << filename << endl;
         exit(10);
     }
 
     string line;
-    int lineCount=1;
+    int lineCount = 1;
     while (getline(file, line))
     {
         // Split the line by commas
         size_t pos = 0;
         vector<string> parts;
-        while ((pos = line.find(',')) != string::npos) {
+        while ((pos = line.find(',')) != string::npos)
+        {
             parts.push_back(line.substr(0, pos));
             line.erase(0, pos + 1);
         }
         parts.push_back(line); // Add the last part
 
         // Validate the number of parts
-        if (parts.size() != 4) {
-            cerr << "Error: Invalid format in line " << lineCount << " in the library file"<<endl;
+        if (parts.size() != 4)
+        {
+            cerr << "Error: Invalid format in line " << lineCount << " in the library file" << endl;
             exit(1);
         }
 
@@ -77,23 +81,26 @@ vector<Gates> parseLibraryFile(const string &filename) {
         string name = parts[0];
         int numInputs, delayPs;
         string outputExpression;
-        try {
+        try
+        {
             numInputs = stoi(parts[1]);
             outputExpression = parts[2];
             delayPs = stoi(parts[3]);
-        } catch (const exception& e) {
+        }
+        catch (const exception &e)
+        {
             cerr << "Error parsing line: " << line << endl;
             exit(2);
         }
-        if(delayPs<0 || numInputs<0)
+        if (delayPs < 0 || numInputs < 0)
         {
             cerr << "Error in numbers in the library. Number is negative in line: " << line << endl;
             exit(2);
         }
-        name=removeSpaces(name);
-        outputExpression=removeSpaces(outputExpression);
-        name=removeCommas(name);
-        outputExpression=removeCommas(outputExpression);
+        name = removeSpaces(name);
+        outputExpression = removeSpaces(outputExpression);
+        name = removeCommas(name);
+        outputExpression = removeCommas(outputExpression);
 
         components.push_back({name, numInputs, outputExpression, delayPs});
         lineCount++;
@@ -115,23 +122,26 @@ vector<Stimuli> parseStimuliFile(const string &filename) // Reads from .stim fil
         return stimuli;
     }
 
-     string line;
-     int lineCount=1;
-    while (getline(file, line)) {
+    string line;
+    int lineCount = 1;
+    while (getline(file, line))
+    {
         if (line.empty() || line[0] == ' ') // Skip lines that are empty or start with a whitespace character
             continue;
 
         // Split the line by commas
         size_t pos = 0;
         vector<string> parts;
-        while ((pos = line.find(',')) != string::npos) {
+        while ((pos = line.find(',')) != string::npos)
+        {
             parts.push_back(line.substr(0, pos));
             line.erase(0, pos + 1);
         }
         parts.push_back(line); // Add the last part
 
         // Validate the number of parts
-        if (parts.size() != 3) {
+        if (parts.size() != 3)
+        {
             cerr << "Error: Invalid format in line: " << lineCount << endl;
             exit(3);
         }
@@ -139,31 +149,45 @@ vector<Stimuli> parseStimuliFile(const string &filename) // Reads from .stim fil
         // Extract components from parts
         int timeStamp, logicValue;
         string input;
-        try {
+        try
+        {
             timeStamp = stoi(parts[0]);
             input = parts[1];
             logicValue = stoi(parts[2]);
-        } catch (const exception& e) {
+        }
+        catch (const exception &e)
+        {
             cerr << "Error parsing line: " << lineCount << endl;
             exit(4);
         }
 
         // Validate logic value
-        if (logicValue != 0 && logicValue != 1) {
+        if (logicValue != 0 && logicValue != 1)
+        {
             cerr << "Error: Invalid logic value (must be 0 or 1) in line: " << lineCount << endl;
             continue; // Skip to the next line
         }
         // Add stimulus to the vector
-        input=removeSpaces(input);
+        input = removeSpaces(input);
         stimuli.push_back({timeStamp, input, logicValue});
         lineCount++;
     }
-    
+
     file.close();
     return stimuli;
 }
-
-void parseCircuitFile(const string &filename, vector<pair<string, vector<wire>>> &ioComponents, vector<Stimuli> stimuli)
+bool checkGates(const string &str, const vector<Gates> &gates)
+{
+    for (const auto &gate : gates)
+    {
+        if (gate.getGateName() == str)
+        {
+            return true;
+        }
+    }
+    return false;
+}
+bool parseCircuitFile(const string &filename, vector<pair<string, vector<wire>>> &ioComponents, vector<Stimuli> stimuli, vector<Gates> gates)
 {
     string input;
     vector<string> inputs2;
@@ -270,7 +294,14 @@ void parseCircuitFile(const string &filename, vector<pair<string, vector<wire>>>
                     }
                 }
                 // Add the gate and its corresponding vector of wires to the ioComponents vector
-                ioComponents.push_back(make_pair(type, ioVector));
+                if (checkGates(type, gates))
+                {
+                    ioComponents.push_back(make_pair(type, ioVector));
+                }
+                else
+                {
+                    return false;
+                }
             }
         }
     }
@@ -378,7 +409,8 @@ bool computinglogic2(vector<Gates> library, vector<pair<string, vector<wire>>> i
     int j = 0;
     string expression;
     for (auto it = ioComponents.begin(); it != ioComponents.end(); it++)
-    {   cout<<"\\\\\\\\\\\\"<<it->first;
+    {
+        cout << "\\\\\\\\\\\\" << it->first;
         int position = -1;
         for (int i = 0; i < library.size(); i++)
         {
@@ -399,7 +431,8 @@ bool computinglogic2(vector<Gates> library, vector<pair<string, vector<wire>>> i
                 operands.push(getWire(ioComponents, it->second[x].name));
             }
             if (isoperator(c))
-            {   bool b;
+            {
+                bool b;
                 while (!operators.empty() && precedence(c) <= precedence(operators.top()))
                 {
                     bool a = operands.top();
@@ -416,7 +449,7 @@ bool computinglogic2(vector<Gates> library, vector<pair<string, vector<wire>>> i
                         operands.push(a & b);
                         break;
                     case '|':
-                        b= operands.top();
+                        b = operands.top();
                         operands.pop();
                         operands.push(a | b);
                         break;
@@ -432,7 +465,8 @@ bool computinglogic2(vector<Gates> library, vector<pair<string, vector<wire>>> i
             else if (c == ')')
             {
                 while (operators.top() != '(')
-                {   bool b;
+                {
+                    bool b;
                     bool a = operands.top();
                     operands.pop();
                     switch (operators.top())
@@ -459,7 +493,8 @@ bool computinglogic2(vector<Gates> library, vector<pair<string, vector<wire>>> i
             j++;
         }
         while (!operators.empty())
-        {   bool b;
+        {
+            bool b;
             bool a = operands.top();
             operands.pop();
             switch (operators.top())
@@ -481,8 +516,10 @@ bool computinglogic2(vector<Gates> library, vector<pair<string, vector<wire>>> i
             }
             operators.pop();
         }
-        if(!operands.empty())
-        {it->second[0].type=operands.top();}
+        if (!operands.empty())
+        {
+            it->second[0].type = operands.top();
+        }
     }
 }
 bool computingLogic(vector<pair<string, vector<wire>>> ioComponents, vector<Gates> libComponents, vector<Stimuli> stimuli, vector<int> timeScale, vector<Stimuli> &F_output) // send the delay vector to the function
@@ -490,7 +527,8 @@ bool computingLogic(vector<pair<string, vector<wire>>> ioComponents, vector<Gate
     int currentTimeScale = 0;
     bool output = false;
     int scaleIndex = 0;
-    while (scaleIndex <= timeScale.size())
+    while (scaleIndex <= timeScale.size()) // we need to put a max value either for the scale or
+                                           // the scale index, most probably will be the time
     {
         for (auto it = ioComponents.begin(); it != ioComponents.end(); it++)
         {
@@ -888,10 +926,16 @@ int main()
     vector<pair<string, vector<wire>>> mp;
     vector<Stimuli> stimuli = parseStimuliFile("Tests/TestCircuit1/stimFileCirc1.stim");
     int i = 0;
-    parseCircuitFile("Tests/TestCircuit1/testCircuit1.cir", mp, stimuli);
-    for(int i=0;i<libComponents.size();i++)
+    if (parseCircuitFile("Tests/TestCircuit1/testCircuit1.cir", mp, stimuli, libComponents))
     {
-        cout<<libComponents[i].getGateName()<<libComponents[i].getNumOfInputs()<<libComponents[i].getOutputExpression()<<libComponents[i].getDelayTime()<<endl;
+        for (int i = 0; i < libComponents.size(); i++)
+        {
+            cout << libComponents[i].getGateName() << libComponents[i].getNumOfInputs() << libComponents[i].getOutputExpression() << libComponents[i].getDelayTime() << endl;
+        }
+        cout << computinglogic2(libComponents, mp);
     }
-    cout<<computinglogic2(libComponents,mp);
+    else 
+    {
+        cout << "Error: There is a gate in the circuit that has not been initialized in the library file.\n";
+    }
 }
