@@ -147,7 +147,8 @@ vector<Stimuli> parseStimuliFile(const string &filename) // Reads from .stim fil
         }
 
         // Extract components from parts
-        int timeStamp, logicValue;
+        int timeStamp; 
+        bool logicValue;
         string input;
         try
         {
@@ -177,7 +178,19 @@ vector<Stimuli> parseStimuliFile(const string &filename) // Reads from .stim fil
     return stimuli;
 }
 
-void parseCircuitFile(const string &filename, vector<pair<string, vector<wire>>> &ioComponents, vector<Stimuli> stimuli)
+bool checkGates(const string &str, const vector<Gates> &gates)
+{
+    for (const auto &gate : gates)
+    {
+        if (gate.getGateName() == str)
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool parseCircuitFile(const string &filename, vector<pair<string, vector<wire>>> &ioComponents, vector<Stimuli> stimuli,vector<Gates> gates)
 {
     string input;
     vector<string> inputs2;
@@ -188,7 +201,7 @@ void parseCircuitFile(const string &filename, vector<pair<string, vector<wire>>>
     if (!file.is_open())
     {
         cerr << "Error opening file: " << filename << endl;
-        return; // Return if the file cannot be opened
+        return 0; // Return if the file cannot be opened
     }
 
     string line;
@@ -284,12 +297,20 @@ void parseCircuitFile(const string &filename, vector<pair<string, vector<wire>>>
                     }
                 }
                 // Add the gate and its corresponding vector of wires to the ioComponents vector
-                ioComponents.push_back(make_pair(type, ioVector));
+               if (checkGates(type, gates))
+                {
+                    ioComponents.push_back(make_pair(type, ioVector));
+                }
+                else
+                {
+                    return false;
+                }
             }
         }
     }
     // Close the file
     file.close();
+    return true;
 }
 
 bool getWire(const vector<pair<string, vector<wire>>> &vec, const string &wireName) // a vector that returns the boolean type of the needed wire
@@ -390,7 +411,7 @@ bool boolevaluateOR(bool a, bool b)
 {
     return (a || b);
 }
-bool computinglogic2(vector<Gates> library, vector<pair<string, vector<wire>>> ioComponents)
+void computinglogic2(vector<Gates> library, vector<pair<string, vector<wire>>> ioComponents)
 {
     string expression;
     for (auto it = ioComponents.begin(); it != ioComponents.end(); it++)
@@ -442,7 +463,7 @@ bool computinglogic2(vector<Gates> library, vector<pair<string, vector<wire>>> i
                     case '|':
                         b = operands.top();
                         operands.pop();
-                        operands.push(boolevaluateOR);
+                        operands.push(a||b);
                         break;
                     }
                     operators.pop();
@@ -915,10 +936,16 @@ int main()
     vector<pair<string, vector<wire>>> mp;
     vector<Stimuli> stimuli = parseStimuliFile("Tests/TestCircuit5/stimFileCir5.stim");
     int i = 0;
-    parseCircuitFile("Tests/TestCircuit5/testCircuit5.cir", mp, stimuli);
-    for (int i = 0; i < libComponents.size(); i++)
+   if (parseCircuitFile("Tests/TestCircuit5/testCircuit5.cir", mp, stimuli, libComponents))
     {
-        cout << libComponents[i].getGateName() << libComponents[i].getNumOfInputs() << libComponents[i].getOutputExpression() << libComponents[i].getDelayTime() << endl;
+        for (int i = 0; i < libComponents.size(); i++)
+        {
+            cout << libComponents[i].getGateName() << libComponents[i].getNumOfInputs() << libComponents[i].getOutputExpression() << libComponents[i].getDelayTime() << endl;
+        }
+         computinglogic2(libComponents, mp);
     }
-    computinglogic2(libComponents, mp);
+    else 
+    {
+        cout << "Error: There is a gate in the circuit that has not been initialized in the library file.\n";
+    }
 }
