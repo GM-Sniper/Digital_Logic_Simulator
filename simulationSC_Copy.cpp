@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 #include <sstream>
+#include <cstdlib>
 #include <cctype>
 #include <stack>
 #include <cmath>
@@ -930,13 +931,21 @@ bool compareStimuli(const Stimuli &a, const Stimuli &b)
     return a.getTimeStamp() < b.getTimeStamp();
 }
 
-int main()
+int main(int argc, char* argv[])
 {
-    vector<Gates> libComponents = parseLibraryFile("Tests/libFile.lib");
+    if (argc < 4) {
+    std::cerr << "Error: Please provide a library file, circuit file, and stimuli file as arguments." << std::endl;
+    return 1; // Exit with an error code
+  }
+  const char* libraryPath = argv[1];
+  const char* circuitPath = argv[2];
+  const char* stimuliPath = argv[3];
+
+    vector<Gates> libComponents = parseLibraryFile(libraryPath);
     vector<pair<string, vector<wire>>> mp;
-    vector<Stimuli> stimuli = parseStimuliFile("Tests/TestCircuit5/stimFileCir5.stim");
+    vector<Stimuli> stimuli = parseStimuliFile(stimuliPath);
     int i = 0;
-   if (parseCircuitFile("Tests/TestCircuit5/testCircuit5.cir", mp, stimuli, libComponents))
+   if (parseCircuitFile(circuitPath, mp, stimuli, libComponents))
     {
         for (int i = 0; i < libComponents.size(); i++)
         {
@@ -948,4 +957,11 @@ int main()
     {
         cout << "Error: There is a gate in the circuit that has not been initialized in the library file.\n";
     }
+    //"Tests/libFile.lib"
+    //"Tests/TestCircuit5/stimFileCir5.stim"
+    //"Tests/TestCircuit5/testCircuit5.cir"
+    //simulationSC_Copy
+    //E:/ENG Mohamed/digital desgin repo/Digital_Design_Project_1
+    //./simulationSC_Copy "E:\ENG Mohamed\digital desgin repo\Digital_Design_Project_1\Tests\libFile.lib" "E:\ENG Mohamed\digital desgin repo\Digital_Design_Project_1\Tests\TestCircuit1\stimFileCirc1.stim" "E:\ENG Mohamed\digital desgin repo\Digital_Design_Project_1\Tests\TestCircuit1\testCircuit1.cir"
+
 }
