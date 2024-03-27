@@ -161,8 +161,16 @@ vector<Stimuli> parseStimuliFile(const string &filename) // Reads from .stim fil
     file.close();
     return stimuli;
 }
-
-void parseCircuitFile(const string &filename, vector<pair<string, vector<wire>>> &ioComponents, vector<Stimuli> stimuli)
+bool checkGates(const string& str,const vector<Gates>& gates)
+{
+    for (const auto& gate : gates) {
+        if (gate.getGateName() == str) {
+            return true;
+        }
+    }
+    return false;
+}
+bool parseCircuitFile(const string &filename, vector<pair<string, vector<wire>>> &ioComponents, vector<Stimuli> stimuli,vector<Gates>gates)
 {
     string input;
     vector<string> inputs2;
@@ -269,7 +277,15 @@ void parseCircuitFile(const string &filename, vector<pair<string, vector<wire>>>
                     }
                 }
                 // Add the gate and its corresponding vector of wires to the ioComponents vector
-                ioComponents.push_back(make_pair(type, ioVector));
+                if(checkGates(type,gates))
+                {
+                    ioComponents.push_back(make_pair(type, ioVector));
+                }
+                else
+                {
+                    return false;
+                }
+                
             }
         }
     }
@@ -344,7 +360,8 @@ bool computingLogic(vector<pair<string, vector<wire>>> ioComponents, vector<Gate
     int currentTimeScale = 0;
     bool output = false;
     int scaleIndex = 0;
-    while (scaleIndex <= timeScale.size())
+    while (scaleIndex <= timeScale.size()) // we need to put a max value either for the scale or 
+                                           // the scale index, most probably will be the time 
     {
         for (auto it = ioComponents.begin(); it != ioComponents.end(); it++)
         {
@@ -743,4 +760,7 @@ int main()
     {
         cout<<libComponents[i].getGateName()<<libComponents[i].getNumOfInputs()<<libComponents[i].getOutputExpression()<<libComponents[i].getDelayTime()<<endl;
     }
+
+    // we can use the parseCircuitFile function to know if there is a gate in the circuit
+    // that do not exist in the library file; then we terminate
 }
