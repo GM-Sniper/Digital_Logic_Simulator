@@ -194,7 +194,6 @@ bool checkGates(const string &str, const vector<Gates> &gates)
 bool parseCircuitFile(const string &filename, vector<pair<string, vector<wire>>> &ioComponents, vector<Stimuli> stimuli, vector<Gates> gates)
 {
     string input;
-    vector<string> inputs2;
 
     // Open the circuit file
     ifstream file(filename);
@@ -222,8 +221,19 @@ bool parseCircuitFile(const string &filename, vector<pair<string, vector<wire>>>
                 istringstream iss(line);
                 // Read comma-separated inputs
                 while (getline(iss, input, ','))
-                {
-                    inputs2.push_back(input);
+                {   int position=-1;
+                    for (int i = 0; i < stimuli.size(); i++)
+                        {
+                            if (input == stimuli[i].getInput())
+                            {
+                                position = i;
+                            }
+                        }
+                    if(position==-1)
+                    {
+                        cerr<<"Error: The input is not in the stimuli file.\n";
+                        exit(20);
+                    }
                 }
             }
         }
@@ -246,36 +256,21 @@ bool parseCircuitFile(const string &filename, vector<pair<string, vector<wire>>>
                 if (iss >> name >> type >> output)
                 {
                     // Clean up type and output strings
-                    while (type.at(type.length() - 1) == ',')
-                    {
-                        type.erase(type.length() - 1, 1);
-                    }
-                    while (type.at(0) == ' ')
-                    {
-                        type.erase(0, 1);
-                    }
-                    while (output.at(output.length() - 1) == ',')
-                    {
-                        output.erase(output.length() - 1, 1);
-                    }
-                    while (output.at(0) == ' ')
-                    {
-                        output.erase(0, 1);
-                    }
+                    type=removeSpaces(type);
+                    type=removeCommas(type);
+                    output=removeSpaces(output);
+                    output=removeCommas(output);
+                    name=removeSpaces(name);
+                    name=removeCommas(name);
+
                     // Add output to the vector of wires
                     ioVector.push_back(wire(output, 0));
 
                     // Read inputs for the gate
                     while (iss >> input)
                     {
-                        while (input.at(input.length() - 1) == ',')
-                        {
-                            input.erase(input.length() - 1, 1);
-                        }
-                        while (input.at(0) == ' ')
-                        {
-                            input.erase(0, 1);
-                        }
+                        input=removeSpaces(input);
+                        input=removeCommas(input);
                         int position = -1;
                         // Check if the input is provided as stimuli
                         for (int i = 0; i < stimuli.size(); i++)
@@ -304,6 +299,7 @@ bool parseCircuitFile(const string &filename, vector<pair<string, vector<wire>>>
                 }
                 else
                 {
+                    cerr<<"This gate is not in the library file, please check.\n";
                     return false;
                 }
             }
