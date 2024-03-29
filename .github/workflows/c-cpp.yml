@@ -18,10 +18,7 @@ jobs:
       run: choco install visualstudio2019buildtools --package-parameters "--add Microsoft.VisualStudio.Component.VC.Tools.x86.x64"
 
     - name: Build with MSBuild
-      run: '"C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\MSBuild\Current\Bin\MSBuild.exe" /p:Configuration=Release'
-
-    - name: Run Tests
-      run: echo "No tests configured"
+      run: '"C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\MSBuild\Current\Bin\MSBuild.exe" simulationSC_Copy.cpp /p:Configuration=Release'
 
     - name: Check for Errors
       run: exit 0 # Replace with actual error checking logic if needed
