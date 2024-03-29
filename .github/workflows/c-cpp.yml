@@ -1,26 +1,23 @@
-name: Build and Execute
+name: simulation
 
 on:
   push:
-    branches: [main]
+    branches: [ "main" ]
   pull_request:
-    branches: [main]
+    branches: [ "main" ]
 
 jobs:
   build:
-    runs-on: windows-latest
-    
+
+    runs-on: ubuntu-latest
+
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v2
-
-    - name: Set up MSVC
-      uses: microsoft/setup-msbuild@v1.0.2
-
-    - name: Build program
-      run: |
-        MSBuild.exe /p:Configuration=Release /p:Platform=x64 /p:PlatformToolset=v142 /p:CharacterSet=Unicode simulationSC_Copy.cpp
-
-    - name: Execute program
-      run: |
-        simulationSC_Copy.exe Tests\TestCircuit2\testCircuit2.cir Tests\TestCircuit2\stimFileCirc2.stim Tests\TestCircuit2\outputSimulation2.sim Tests\commonoutput.sim
+    - uses: actions/checkout@v3
+    - name: configure
+      run: ./configure
+    - name: make
+      run: make
+    - name: make check
+      run: make check
+    - name: make distcheck
+      run: make distcheck
