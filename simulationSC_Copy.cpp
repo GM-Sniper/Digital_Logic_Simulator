@@ -200,7 +200,7 @@ bool checkGates(const string &str, const vector<Gates> &gates)
     return false;
 }
 
-bool parseCircuitFile(const string &filename, vector<pair<string, vector<wire>>> &ioComponents, vector<Stimuli> &stimuli,vector<string> inputsT ,vector<Gates> gates)
+bool parseCircuitFile(const string &filename, vector<pair<string, vector<wire>>> &ioComponents, vector<Stimuli> &stimuli,vector<string> &inputsT ,vector<Gates> &gates)
 {
     string input;
 
@@ -231,19 +231,9 @@ bool parseCircuitFile(const string &filename, vector<pair<string, vector<wire>>>
                 // Read comma-separated inputs
                 while (getline(iss, input, ','))
                 {
-                    int position = -1;
-                    for (int i = 0; i < stimuli.size(); i++)
-                    {
-                        if (input == stimuli[i].getInput())
-                        {
-                            position = i;
-                        }
-                    }
-                    if (position == -1)
-                    {
-                        cerr << "Error: The input is not in the stimuli file.\n";
-                        exit(20);
-                    }
+                    input=removeCommas(input);
+                    input=removeSpaces(input);
+                    inputsT.push_back(input);
                 }
             }
         }
@@ -437,7 +427,7 @@ bool findor(const string &x)
         return false;
     }
 }
-void computinglogic2(vector<Gates> library, vector<pair<string, vector<wire>>> ioComponents, vector<Stimuli>& stimuli, vector<int> timeScale, vector<Stimuli> &F_output)
+void computinglogic2(vector<Gates> library, vector<pair<string, vector<wire>>> ioComponents, vector<Stimuli>& stimuli, vector<int> timeScale, vector<string> &cirInputs, vector<Stimuli> &F_output)
 {
     string expression;
     int currenttimescale = 0;
@@ -712,6 +702,7 @@ int main(int argc, char *argv[])
     vector<Stimuli> stimuli = parseStimuliFile(stimuliPath);
     vector<pair<string, vector<wire>>> mp;
     vector<int> timeScale;
+    vector<string> cirInputs;
     vector<Stimuli> output;
     for (int i = 0; i < stimuli.size(); i++)
     {
@@ -719,13 +710,13 @@ int main(int argc, char *argv[])
     }
     int OScale = scale(timeScale);
 
-    if (parseCircuitFile(circuitPath, mp, stimuli, libComponents))
+    if (parseCircuitFile(circuitPath, mp, stimuli, cirInputs, libComponents))
     {
         for (int i = 0; i < libComponents.size(); i++)
         {
             cout << libComponents[i].getGateName() << libComponents[i].getNumOfInputs() << libComponents[i].getOutputExpression() << libComponents[i].getDelayTime() << endl;
         }
-        computinglogic2(libComponents, mp, stimuli, timeScale, output);
+        computinglogic2(libComponents, mp, stimuli, timeScale, cirInputs,output);
     }
     else
     {
