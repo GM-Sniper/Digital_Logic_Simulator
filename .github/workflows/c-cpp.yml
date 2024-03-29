@@ -15,9 +15,9 @@ jobs:
       uses: actions/checkout@v2
 
     - name: Install g++
-      run: sudo apt-get update && sudo apt-get install -y g++
+      run: sudo apt-get install -y g++
 
     - name: Build and test
       run: |
         g++ -std=c++11 -o simulationMain simulationMain.cpp
-        ./simulationMain "Tests/libFile.lib" "./Tests/TestCircuit1/testCircuit1.cir" "./Tests/TestCircuit1/stimFileCirc1.stim" "./Tests/TestCircuit1/outputSimulation1.sim" "./Tests/commonoutput.sim"
+        ./simulationMain "Tests/libFile.lib" "Tests/TestCircuit2/testCircuit2.cir" "Tests/TestCircuit2/stimFileCirc2.stim" "Tests/TestCircuit2/outputSimulation2.sim" "Tests/commonoutput.sim"
