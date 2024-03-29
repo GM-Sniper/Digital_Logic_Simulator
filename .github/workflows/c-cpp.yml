@@ -1,5 +1,4 @@
 name: Simulation CI
-description: Continuous Integration workflow for simulation project
 
 on:
   push:
