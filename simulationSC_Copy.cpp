@@ -171,6 +171,11 @@ vector<Stimuli> parseStimuliFile(const string &filename) // Reads from .stim fil
         }
         // Add stimulus to the vector
         input = removeSpaces(input);
+        if(timeStamp<0)
+        {
+            cout<<"time dealy can not be negative\n";
+            exit(150);
+        }
         stimuli.push_back({timeStamp, input, logicValue});
         lineCount++;
     }
