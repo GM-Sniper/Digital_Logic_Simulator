@@ -32,7 +32,7 @@ The code parses input files to extract information about logical gates, circuit 
 It simulates the behavior of the circuit over time, considering gate delays and input stimuli.
 
 ### Output
-Simulation results are written to output files, including intermediate and final results. The output results are expressed through a `.txt` file and it automatically visualizates using Python.
+Simulation results are written to output files, including intermediate and final results. The output results are expressed through a `.sim` file and it automatically visualizates using Python.
 
 ## Features
 -Support for various logical gates (AND, OR, NOT, etc.).
