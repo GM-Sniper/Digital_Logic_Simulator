@@ -3,10 +3,9 @@ description: Continuous Integration workflow for simulation project
 
 on:
   push:
-    branches: [main]
-  pull_request:
-    branches: [main]
-    types: [closed]  # Trigger only when pull request is closed
+    branches: [ main ]
+  pull_request:  # Consider triggering on merged pull requests instead
+    branches: [ main ]
 
 jobs:
   build:
@@ -16,29 +15,29 @@ jobs:
         os: [windows-latest, ubuntu-latest, macos-latest]
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-    - name: Install MinGW compiler (g++) - Windows
-      if: matrix.os == 'windows-latest'
-      run: |
-        choco install mingw-w64-x86_64-gcc -y
-        refreshenv
+      - name: Install MinGW compiler (g++) - Windows (for reference)
+        if: matrix.os == 'windows-latest'
+        run: |
+          choco install mingw-w64-x86_64-gcc -y
+          refreshenv
 
-    - name: Build and test
-      run: |
-        g++ -o simulationSC_Copy simulationSC_Copy.cpp -Wall -Wextra
-        ./simulationSC_Copy "Tests/libFile.lib" "Tests/TestCircuit2/testCircuit2.cir" "Tests/TestCircuit2/stimFileCirc2.stim" "Tests/TestCircuit2/outputSimulation2.sim" "Tests/commonoutput.sim"
+      - name: Build and test
+        run: |
+          g++ -o simulationSC_Copy simulationSC_Copy.cpp -Wall -Wextra
+          ./simulationSC_Copy "Tests/libFile.lib" "Tests/TestCircuit2/testCircuit2.cir" "Tests/TestCircuit2/stimFileCirc2.stim" "Tests/TestCircuit2/outputSimulation2.sim" "Tests/commonoutput.sim"
 
-    - name: Upload test artifacts
-      uses: actions/upload-artifact@v3
-      with:
-        name: test-results
-        path: Tests/*.sim
+      - name: Upload test artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-results
+          path: Tests/*.sim
 
-    - name: Report test failures
-      run: |
-        if grep -r --quiet "ERROR" Tests/*.sim; then
-          echo "Tests failed! See simulation output in artifacts."
-          exit 1
-        fi
+      - name: Report test failures
+        run: |
+          if grep -r "ERROR" Tests/*.sim; then
+            echo "Tests failed! See simulation output in artifacts."
+            exit 1
+          fi
