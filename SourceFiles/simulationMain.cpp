@@ -8,8 +8,8 @@
 #include <cmath>
 #include <algorithm>
 #include <cstdlib>
-#include "Circuit Classes/Stimuli.h"
-#include "Circuit Classes/Gates.h"
+#include "../Circuit Classes/Stimuli.h"
+#include "../Circuit Classes/Gates.h"
 using namespace std;
 struct wire // Struct for wires is used to instantiate wires that have common attributes like name, delay,and boolean type.
 {
