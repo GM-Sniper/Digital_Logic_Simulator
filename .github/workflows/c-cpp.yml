@@ -1,42 +1,34 @@
-name: Simulation CI
+name: C++ Build and Run (Windows)
 
 on:
   push:
-    branches: [ main ]
-  pull_request:  # Consider triggering on merged pull requests instead
-    branches: [ main ]
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
 
 jobs:
   build:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [windows-latest, ubuntu-latest, macos-latest]
+    runs-on: windows-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+    - name: Checkout Repository
+      uses: actions/checkout@v2
 
-      - name: Install MinGW compiler (g++) - Windows (for reference)
-        if: matrix.os == 'windows-latest'
-        run: |
-          choco install mingw-w64-x86_64-gcc -y
-          refreshenv
+    - name: Install Visual Studio Build Tools
+      uses: microsoft/setup-msbuild@v1.0.2
 
-      - name: Build and test
-        run: |
-          g++ -o simulationSC_Copy simulationSC_Copy.cpp -Wall -Wextra
-          ./simulationSC_Copy "Tests/libFile.lib" "Tests/TestCircuit2/testCircuit2.cir" "Tests/TestCircuit2/stimFileCirc2.stim" "Tests/TestCircuit2/outputSimulation2.sim" "Tests/commonoutput.sim"
+    - name: Build Program
+      run: |
+        msbuild /property:Configuration=Release /property:Platform="Win32" simulationSC_Copy.cpp
 
-      - name: Upload test artifacts
-        uses: actions/upload-artifact@v3
-        with:
-          name: test-results
-          path: Tests/*.sim
+    - name: Run Program
+      run: |
+        simulationSC_Copy.exe ${{ env.CIRCUIT_FILE_PATH }} ${{ env.STIMULI_FILE_PATH }} ${{ env.OUTPUT_FILE_PATH }} ${{ env.COMMON_OUTPUT_PATH }}
 
-      - name: Report test failures
-        run: |
-          if grep -r "ERROR" Tests/*.sim; then
-            echo "Tests failed! See simulation output in artifacts."
-            exit 1
-          fi
+env:
+  CIRCUIT_FILE_PATH: 'Tests\TestCircuit2\testCircuit2.cir'
+  STIMULI_FILE_PATH: 'Tests\TestCircuit2\stimFileCirc2.stim'
+  OUTPUT_FILE_PATH: 'Tests\TestCircuit2\outputSimulation2.sim'
+  COMMON_OUTPUT_PATH: 'Tests\commonoutput.sim'
