@@ -171,9 +171,9 @@ vector<Stimuli> parseStimuliFile(const string &filename) // Reads from .stim fil
         }
         // Add stimulus to the vector
         input = removeSpaces(input);
-        if(timeStamp<0)
+        if (timeStamp < 0)
         {
-            cout<<"time dealy can not be negative\n";
+            cout << "Time delay can not be negative in the stimuli.\n";
             exit(150);
         }
         stimuli.push_back({timeStamp, input, logicValue});
@@ -272,6 +272,8 @@ bool parseCircuitFile(const string &filename, vector<pair<string, vector<wire>>>
                     // Add output to the vector of wires
                     ioVector.push_back(wire(output, 0));
 
+                    // Checks for similar inputs with differnt delays
+                    vector<bool> checks(stimuli.size(), false);
                     // Read inputs for the gate
                     while (iss >> input)
                     {
@@ -281,9 +283,11 @@ bool parseCircuitFile(const string &filename, vector<pair<string, vector<wire>>>
                         // Check if the input is provided as stimuli
                         for (int i = 0; i < stimuli.size(); i++)
                         {
-                            if (input == stimuli[i].getInput())
+                            if (input == stimuli[i].getInput() && checks[i] == false)
                             {
                                 position = i;
+                                checks[i] = true;
+                                break;
                             }
                         }
                         // Add the input to the vector of wires
@@ -293,8 +297,14 @@ bool parseCircuitFile(const string &filename, vector<pair<string, vector<wire>>>
                         }
                         else
                         {
-                            // Add input with timestamp if it's provided as stimuli
-                            ioVector.push_back(wire(input, 0, stimuli[position].getTimeStamp()));
+                            if (stimuli[position].getTimeStamp() == 0)
+                            { // Add input with timestamp if it's provided as stimuli
+                                ioVector.push_back(wire(input, stimuli[position].getLogicValue(), stimuli[position].getTimeStamp()));
+                            }
+                            else
+                            {
+                                ioVector.push_back(wire(input, 0, stimuli[position].getTimeStamp()));
+                            }
                         }
                     }
                 }
@@ -306,6 +316,7 @@ bool parseCircuitFile(const string &filename, vector<pair<string, vector<wire>>>
                 else
                 {
                     cerr << "This gate is not in the library file, please check.\n";
+                    exit(15);
                     return false;
                 }
             }
@@ -427,6 +438,7 @@ void computinglogic2(vector<Gates> library, vector<pair<string, vector<wire>>> i
     int currenttimescale = 0;
     int scaleindex = 0;
     vector<string> inpts;
+    vector<bool> checks(stimuli.size(), false);
     for (auto it = stimuli.begin(); it != stimuli.end(); it++)
     {
         inpts.push_back(it->getInput());
@@ -449,13 +461,13 @@ void computinglogic2(vector<Gates> library, vector<pair<string, vector<wire>>> i
                 else
                 {
                     found = false;
-                    Xwire=it->second[i].name;
+                    Xwire = it->second[i].name;
                     break;
                 }
             }
             if (!found)
             {
-                cerr << Xwire <<" is not declared as an input " << endl;
+                cerr << Xwire << " is not declared as an input " << endl;
                 exit(12);
             }
             for (int i = 0; i < library.size(); i++)
@@ -608,12 +620,11 @@ void computinglogic2(vector<Gates> library, vector<pair<string, vector<wire>>> i
             {
                 // Reference to the current wire
                 wire &currentWire = it->second[i];
-
                 // Loop through all stimuli
-                for (int i = 0; i < stimuli.size(); i++)
+                for (int j = 0; j < stimuli.size(); j++)
                 {
                     // Check if the current wire matches the input of any stimuli
-                    if (currentWire.name == stimuli[i].getInput())
+                    if (currentWire.name == stimuli[j].getInput()&& checks[j]==false)
                     {
                         // Check if the wire has a delay
                         if (currentWire.delay != 0)
@@ -633,6 +644,8 @@ void computinglogic2(vector<Gates> library, vector<pair<string, vector<wire>>> i
                                 }
                                 // Store the output with delay, name, and type
                                 F_output.push_back({currentWire.delay, currentWire.name, currentWire.type});
+                                checks[j]=true;
+                                break;
                             }
                         }
                     }
