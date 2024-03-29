@@ -14,18 +14,14 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
-    # Install MSBuild
     - name: Install MSBuild
       run: choco install visualstudio2019buildtools --package-parameters "--add Microsoft.VisualStudio.Component.VC.Tools.x86.x64"
 
-    # Build the project using MSBuild
     - name: Build with MSBuild
-      run: msbuild /p:Configuration=Release
+      run: '"C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\MSBuild\Current\Bin\MSBuild.exe" /p:Configuration=Release'
 
-    # Run tests if applicable (replace with your test command)
     - name: Run Tests
       run: echo "No tests configured"
 
-    # Check for errors and exit with non-zero code if any
     - name: Check for Errors
       run: exit 0 # Replace with actual error checking logic if needed
