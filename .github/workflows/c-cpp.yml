@@ -1,24 +1,26 @@
-name: C/C++ CI
+name: Build and Execute
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [main]
   pull_request:
-    branches: [ "main" ]
+    branches: [main]
 
 jobs:
   build:
-
     runs-on: windows-latest
-
+    
     steps:
-    - uses: actions/checkout@v3
+    - name: Checkout repository
+      uses: actions/checkout@v2
 
-    - name: Install MSBuild
-      run: choco install visualstudio2019buildtools --package-parameters "--add Microsoft.VisualStudio.Component.VC.Tools.x86.x64"
+    - name: Set up MSVC
+      uses: microsoft/setup-msbuild@v1.0.2
 
-    - name: Build with MSBuild
-      run: '"C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\MSBuild\Current\Bin\MSBuild.exe" simulationSC_Copy.cpp /p:Configuration=Release'
+    - name: Build program
+      run: |
+        MSBuild.exe /p:Configuration=Release /p:Platform=x64 /p:PlatformToolset=v142 /p:CharacterSet=Unicode simulationSC_Copy.cpp
 
-    - name: Check for Errors
-      run: exit 0 # Replace with actual error checking logic if needed
+    - name: Execute program
+      run: |
+        simulationSC_Copy.exe Tests\TestCircuit2\testCircuit2.cir Tests\TestCircuit2\stimFileCirc2.stim Tests\TestCircuit2\outputSimulation2.sim Tests\commonoutput.sim
