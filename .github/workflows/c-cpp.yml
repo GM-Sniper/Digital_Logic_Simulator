@@ -15,9 +15,11 @@ jobs:
       uses: actions/checkout@v2
 
     - name: Install g++
-      run: choco install mingw -y
+      run: |
+        choco install mingw -y || true
+        refreshenv
 
     - name: Build and test
       run: |
-        g++ -std=c++11 -o simulationSC_Copy.exe simulationSC_Copy.cpp
-        simulationSC_Copy.exe "Tests\libFile.lib" "Tests\TestCircuit2\testCircuit2.cir" "Tests\TestCircuit2\stimFileCirc2.stim" "Tests\TestCircuit2\outputSimulation2.sim" "Tests\commonoutput.sim"
+        g++ -o simulationSC_Copy simulationSC_Copy.cpp
+        .\simulationSC_Copy "Tests\libFile.lib" "Tests\TestCircuit2\testCircuit2.cir" "Tests\TestCircuit2\stimFileCirc2.stim" "Tests\TestCircuit2\outputSimulation2.sim" "Tests\commonoutput.sim"
