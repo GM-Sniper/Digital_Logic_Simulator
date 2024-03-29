@@ -176,7 +176,11 @@ vector<Stimuli> parseStimuliFile(const string &filename) // Reads from .stim fil
             cout << "Time delay can not be negative in the stimuli.\n";
             exit(150);
         }
-        stimuli.push_back({timeStamp, input, logicValue});
+        if(timeStamp==0 && logicValue==0)
+            continue;
+        else
+            stimuli.push_back({timeStamp, input, logicValue});
+        
         lineCount++;
     }
 
@@ -196,7 +200,7 @@ bool checkGates(const string &str, const vector<Gates> &gates)
     return false;
 }
 
-bool parseCircuitFile(const string &filename, vector<pair<string, vector<wire>>> &ioComponents, vector<Stimuli> stimuli, vector<Gates> gates)
+bool parseCircuitFile(const string &filename, vector<pair<string, vector<wire>>> &ioComponents, vector<Stimuli> &stimuli, vector<Gates> gates)
 {
     string input;
 
@@ -300,6 +304,7 @@ bool parseCircuitFile(const string &filename, vector<pair<string, vector<wire>>>
                             if (stimuli[position].getTimeStamp() == 0)
                             { // Add input with timestamp if it's provided as stimuli
                                 ioVector.push_back(wire(input, stimuli[position].getLogicValue(), stimuli[position].getTimeStamp()));
+                                stimuli.erase(stimuli.begin()+position);
                             }
                             else
                             {
@@ -432,7 +437,7 @@ bool findor(const string &x)
         return false;
     }
 }
-void computinglogic2(vector<Gates> library, vector<pair<string, vector<wire>>> ioComponents, vector<Stimuli> stimuli, vector<int> timeScale, vector<Stimuli> &F_output)
+void computinglogic2(vector<Gates> library, vector<pair<string, vector<wire>>> ioComponents, vector<Stimuli>& stimuli, vector<int> timeScale, vector<Stimuli> &F_output)
 {
     string expression;
     int currenttimescale = 0;
@@ -612,7 +617,10 @@ void computinglogic2(vector<Gates> library, vector<pair<string, vector<wire>>> i
             }
             scaleindex++;
         }
-
+        for(int i=0;i<stimuli.size();i++)
+        {
+            cout<<stimuli[i].getInput()<<" "<<stimuli[i].getTimeStamp()<<endl;
+        }
         for (auto it = ioComponents.begin(); it != ioComponents.end(); it++)
         {
             // Loop through all wires in the current component
@@ -624,7 +632,7 @@ void computinglogic2(vector<Gates> library, vector<pair<string, vector<wire>>> i
                 for (int j = 0; j < stimuli.size(); j++)
                 {
                     // Check if the current wire matches the input of any stimuli
-                    if (currentWire.name == stimuli[j].getInput()&& checks[j]==false)
+                    if (currentWire.name == stimuli[j].getInput() && checks[j]==false)
                     {
                         // Check if the wire has a delay
                         if (currentWire.delay != 0)
