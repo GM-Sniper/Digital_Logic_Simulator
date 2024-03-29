@@ -1,23 +1,23 @@
-name: simulation
+name: Circuit Simulation Workflow
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ main ]
   pull_request:
-    branches: [ "main" ]
+    branches: [ main ]
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
-    - name: configure
-      run: ./configure
-    - name: make
-      run: make
-    - name: make check
-      run: make check
-    - name: make distcheck
-      run: make distcheck
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Install g++
+      run: sudo apt-get install -y g++
+
+    - name: Build and test
+      run: |
+        g++ -std=c++11 -o simulationSC_Copy simulationSC_Copy.cpp
+        ./simulationSC_Copy "Tests/libFile.lib" "Tests/TestCircuit2/testCircuit2.cir" "Tests/TestCircuit2/stimFileCirc2.stim" "Tests/TestCircuit2/outputSimulation2.sim" "Tests/commonoutput.sim"
