@@ -1,25 +1,44 @@
-name: Simulation 
+name: Simulation CI
+description: Continuous Integration workflow for simulation project
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
+    types: [closed]  # Trigger only when pull request is closed
 
 jobs:
   build:
-    runs-on: windows-latest
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [windows-latest, ubuntu-latest, macos-latest]
 
     steps:
     - name: Checkout code
       uses: actions/checkout@v3
 
-    - name: Install g++
+    - name: Install MinGW compiler (g++) - Windows
+      if: matrix.os == 'windows-latest'
       run: |
-        choco install mingw -y || true
+        choco install mingw-w64-x86_64-gcc -y
         refreshenv
 
     - name: Build and test
       run: |
-        g++ -o simulationSC_Copy simulationSC_Copy.cpp
-        .\simulationSC_Copy "Tests\libFile.lib" "Tests\TestCircuit2\testCircuit2.cir" "Tests\TestCircuit2\stimFileCirc2.stim" "Tests\TestCircuit2\outputSimulation2.sim" "Tests\commonoutput.sim"
+        g++ -o simulationSC_Copy simulationSC_Copy.cpp -Wall -Wextra
+        ./simulationSC_Copy "Tests/libFile.lib" "Tests/TestCircuit2/testCircuit2.cir" "Tests/TestCircuit2/stimFileCirc2.stim" "Tests/TestCircuit2/outputSimulation2.sim" "Tests/commonoutput.sim"
+
+    - name: Upload test artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: test-results
+        path: Tests/*.sim
+
+    - name: Report test failures
+      run: |
+        if grep -r --quiet "ERROR" Tests/*.sim; then
+          echo "Tests failed! See simulation output in artifacts."
+          exit 1
+        fi
