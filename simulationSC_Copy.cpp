@@ -421,6 +421,11 @@ void computinglogic2(vector<Gates> library, vector<pair<string, vector<wire>>> i
     string expression;
     int currenttimescale = 0;
     int scaleindex = 0;
+    vector<string> inpts;
+    for (auto it = stimuli.begin(); it != stimuli.end(); it++)
+    {
+        inpts.push_back(it->getInput());
+    }
     while (scaleindex <= timeScale.size())
     {
         for (auto it = ioComponents.begin(); it != ioComponents.end(); it++)
@@ -428,22 +433,26 @@ void computinglogic2(vector<Gates> library, vector<pair<string, vector<wire>>> i
             int position = -1;
             int j = 0;
             bool found = false;
+            string Xwire;
             stack<bool> operands;
             stack<char> operators;
-
-            // for (auto ix = stimuli.begin(); ix != stimuli.end(); it++)
-            // {
-            //     for (int i = 1; i < it->second.size(); i++)
-            //     {
-            //         if (it->second[i].name == ix->getInput())
-            //             found = true;
-            //     }
-            // }
-            // if (!found)
-            // {
-            //     cerr<<"This Wire is not declared as an input "<<endl;
-            //     exit(50);
-            // }
+            for (int i = 1; i < it->second.size(); i++)
+            {
+                auto ix = find(inpts.begin(), inpts.end(), it->second[i].name);
+                if (ix != inpts.end())
+                    found = true;
+                else
+                {
+                    found = false;
+                    Xwire=it->second[i].name;
+                    break;
+                }
+            }
+            if (!found)
+            {
+                cerr << Xwire <<" is not declared as an input " << endl;
+                exit(12);
+            }
             for (int i = 0; i < library.size(); i++)
             {
                 if (it->first == library[i].getGateName())
@@ -568,7 +577,7 @@ void computinglogic2(vector<Gates> library, vector<pair<string, vector<wire>>> i
                     // Push the current state to the initial stack
                     it->second[0].initial.push(getWire(ioComponents, it->second[0].name));
                 }
-                // stimuli.push_back(Stimuli(it->second[0].delay, it->second[0].name, it->second[0].type));
+                inpts.push_back(it->second[0].name);
             }
         }
         if (scaleindex == 0)
