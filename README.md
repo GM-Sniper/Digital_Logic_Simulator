@@ -13,7 +13,7 @@ This project aims to develop an event-driven logic circuit simulator, providing 
 Run the executable with the following command-line arguments using the terminal:
 
 ```bash
-./simulationSC_copy <library_file> <circuit_file> <stimuli_file> <output_path> <common_output_path>
+./simulationMain <library_file> <circuit_file> <stimuli_file> <output_path> <common_output_path>
 ```
 
 - `<library_file>`: Path to the library file.
@@ -68,13 +68,13 @@ Simulation results are written to output files, including intermediate and final
 1. **Compilation**: Compile the code using the C++ compiler.
 
 ```bash
-g++ simulationSC_copy.cpp -o simulationSC_copy
+g++ simulationMain.cpp -o simulationSC_copy
 ```
 
 2. **Run the Executable**: Execute the compiled executable with the required command-line arguments.
 
 ```bash
-./simulationSC_copy library_file circuit_file stimuli_file output_path common_output_path
+./simulationMain library_file circuit_file stimuli_file output_path common_output_path
 ```
 When running the executable, the graph visualization will appear to showcase the delays, the output will also be stored in the .sim file. 
 
