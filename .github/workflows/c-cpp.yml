@@ -19,5 +19,5 @@ jobs:
 
     - name: Build and test
       run: |
-       g++ -std=c++11 -o Source Files/simulationMain simulationMain.cpp
+       g++ -std=c++11 -o Source Files/simulationMain Source Files/simulationMain.cpp
         ./simulationMain "../Tests/libFile.lib" "../Tests/TestCircuit1/testCircuit1.cir" "../Tests/TestCircuit1/stimFileCirc1.stim" "../Tests/TestCircuit1/outputSimulation1.sim" "../Tests/commonoutput.sim"
