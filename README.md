@@ -35,10 +35,14 @@ It simulates the behavior of the circuit over time, considering gate delays and 
 Simulation results are written to output files, including intermediate and final results. The output results are expressed through a `.sim` file and it automatically visualizates using Python.
 
 ## Features
--Support for various logical gates (AND, OR, NOT, etc.).
--Ability to simulate complex circuit structures.
--Visualization of simulation results using python.
--Error handling for invalid circuit descriptions, stimuli or circuit gates.
+
+- **Support for Various Logical Gates**: Includes support for common logical gates such as AND, OR, NOT, etc., allowing users to construct diverse digital circuits.
+
+- **Simulation of Complex Circuit Structures**: Offers the capability to simulate complex circuit structures, enabling users to model intricate digital systems accurately.
+
+- **Visualization of Simulation Results**: Utilizes Python for visualizing simulation results, providing users with graphical representations to analyze and interpret circuit behavior.
+
+- **Error Handling**: Implements robust error handling mechanisms to detect and report issues related to invalid circuit descriptions, stimuli, or circuit gates, ensuring smooth operation and accurate results.
 
 ## Example Screenshots
 
