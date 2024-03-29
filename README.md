@@ -40,17 +40,28 @@ Simulation results are written to output files, including intermediate and final
 -Visualization of simulation results using python.
 -Error handling for invalid circuit descriptions, stimuli or circuit gates.
 
-## Example Screenshots:
--Example of .Lib File
-![Simulator Interface](screenshots/simulator_interface.png)
--Example of .Cir File
-![Simulator Interface](screenshots/simulator_interface.png)
--Example of .Stim File
-![Simulator Interface](screenshots/simulator_interface.png)
--Example of .Sim file after the circuit evaluation.
-![Simulator Interface](screenshots/simulator_interface.png)
-Example of the Vizualization.
-![Simulator Interface](screenshots/simulator_interface.png)
+## Example Screenshots
+
+### Example of .Lib File
+![Library File](Screenshots/libFile.png)
+*Description: This screenshot shows an example of a library file (.Lib) containing information about logical gates.*
+
+### Example of .Cir File
+![Circuit File](Screenshots/CirFile.png)
+*Description: This screenshot displays an example of a circuit file (.Cir) describing the structure of the digital circuit.*
+
+### Example of .Stim File
+![Stimuli File](Screenshots/StimFile.png)
+*Description: This screenshot illustrates an example of a stimuli file (.Stim) containing input stimuli for the circuit simulation.*
+
+### Example of .Sim File after Circuit Evaluation
+![Simulation Output](Screenshots/OutputFile.png)
+*Description: This screenshot showcases an example of a simulation output file (.Sim) generated after evaluating the circuit.*
+
+### Example of Visualization
+![Visualization](Screenshots/Visualization.png)
+*Description: This screenshot demonstrates an example of visualization generated from the simulation results.*
+
 
 ## Usage
 
