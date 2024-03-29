@@ -221,17 +221,18 @@ bool parseCircuitFile(const string &filename, vector<pair<string, vector<wire>>>
                 istringstream iss(line);
                 // Read comma-separated inputs
                 while (getline(iss, input, ','))
-                {   int position=-1;
+                {
+                    int position = -1;
                     for (int i = 0; i < stimuli.size(); i++)
-                        {
-                            if (input == stimuli[i].getInput())
-                            {
-                                position = i;
-                            }
-                        }
-                    if(position==-1)
                     {
-                        cerr<<"Error: The input is not in the stimuli file.\n";
+                        if (input == stimuli[i].getInput())
+                        {
+                            position = i;
+                        }
+                    }
+                    if (position == -1)
+                    {
+                        cerr << "Error: The input is not in the stimuli file.\n";
                         exit(20);
                     }
                 }
@@ -256,12 +257,12 @@ bool parseCircuitFile(const string &filename, vector<pair<string, vector<wire>>>
                 if (iss >> name >> type >> output)
                 {
                     // Clean up type and output strings
-                    type=removeSpaces(type);
-                    type=removeCommas(type);
-                    output=removeSpaces(output);
-                    output=removeCommas(output);
-                    name=removeSpaces(name);
-                    name=removeCommas(name);
+                    type = removeSpaces(type);
+                    type = removeCommas(type);
+                    output = removeSpaces(output);
+                    output = removeCommas(output);
+                    name = removeSpaces(name);
+                    name = removeCommas(name);
 
                     // Add output to the vector of wires
                     ioVector.push_back(wire(output, 0));
@@ -269,8 +270,8 @@ bool parseCircuitFile(const string &filename, vector<pair<string, vector<wire>>>
                     // Read inputs for the gate
                     while (iss >> input)
                     {
-                        input=removeSpaces(input);
-                        input=removeCommas(input);
+                        input = removeSpaces(input);
+                        input = removeCommas(input);
                         int position = -1;
                         // Check if the input is provided as stimuli
                         for (int i = 0; i < stimuli.size(); i++)
@@ -299,7 +300,7 @@ bool parseCircuitFile(const string &filename, vector<pair<string, vector<wire>>>
                 }
                 else
                 {
-                    cerr<<"This gate is not in the library file, please check.\n";
+                    cerr << "This gate is not in the library file, please check.\n";
                     return false;
                 }
             }
@@ -426,8 +427,23 @@ void computinglogic2(vector<Gates> library, vector<pair<string, vector<wire>>> i
         {
             int position = -1;
             int j = 0;
+            bool found = false;
             stack<bool> operands;
             stack<char> operators;
+
+            // for (auto ix = stimuli.begin(); ix != stimuli.end(); it++)
+            // {
+            //     for (int i = 1; i < it->second.size(); i++)
+            //     {
+            //         if (it->second[i].name == ix->getInput())
+            //             found = true;
+            //     }
+            // }
+            // if (!found)
+            // {
+            //     cerr<<"This Wire is not declared as an input "<<endl;
+            //     exit(50);
+            // }
             for (int i = 0; i < library.size(); i++)
             {
                 if (it->first == library[i].getGateName())
@@ -545,23 +561,14 @@ void computinglogic2(vector<Gates> library, vector<pair<string, vector<wire>>> i
                 else if (it->second[0].initial.top() != it->second[0].type)
                 {
 
-                    // If the current state is different from the initial state, calculate delay and update
-
-                    // if (findor(library[position].getGateName()))
-                    // {
-                    //     it->second[0].delay = getmin(it->second, ioComponents) + library[position].getDelayTime();
-                    // }
-                    // else
-                    // {
-
                     it->second[0].actualdelay = getmax(it->second, ioComponents) + library[position].getDelayTime();
-                    // }
 
                     F_output.push_back({getDelay(ioComponents, it->second[0].name), it->second[0].name, it->second[0].type});
 
                     // Push the current state to the initial stack
                     it->second[0].initial.push(getWire(ioComponents, it->second[0].name));
                 }
+                // stimuli.push_back(Stimuli(it->second[0].delay, it->second[0].name, it->second[0].type));
             }
         }
         if (scaleindex == 0)
