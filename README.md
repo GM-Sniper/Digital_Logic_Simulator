@@ -42,15 +42,20 @@ Simulation results are written to output files, including intermediate and final
 
 ## Example Screenshots:
 -Example of .Lib File
-![Simulator Interface](screenshots/simulator_interface.png)
+![Simulator Interface](screenshots/libFile.png)
+
 -Example of .Cir File
-![Simulator Interface](screenshots/simulator_interface.png)
+![Simulator Interface](screenshots/CirFile.png)
+
 -Example of .Stim File
-![Simulator Interface](screenshots/simulator_interface.png)
+![Simulator Interface](screenshots/StimFile.png)
+
 -Example of .Sim file after the circuit evaluation.
-![Simulator Interface](screenshots/simulator_interface.png)
+![Simulator Interface](screenshots/OutputFile.png)
+
 Example of the Vizualization.
-![Simulator Interface](screenshots/simulator_interface.png)
+![Simulator Interface](screenshots/Visualization.png)
+
 
 ## Usage
 
