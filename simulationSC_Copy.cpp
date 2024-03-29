@@ -200,7 +200,7 @@ bool checkGates(const string &str, const vector<Gates> &gates)
     return false;
 }
 
-bool parseCircuitFile(const string &filename, vector<pair<string, vector<wire>>> &ioComponents, vector<Stimuli> &stimuli, vector<Gates> gates)
+bool parseCircuitFile(const string &filename, vector<pair<string, vector<wire>>> &ioComponents, vector<Stimuli> &stimuli,vector<string> inputsT ,vector<Gates> gates)
 {
     string input;
 
@@ -634,9 +634,10 @@ void computinglogic2(vector<Gates> library, vector<pair<string, vector<wire>>> i
                     // Check if the current wire matches the input of any stimuli
                     if (currentWire.name == stimuli[j].getInput() && checks[j]==false)
                     {
+                        currentWire.delay=stimuli[j].getTimeStamp();
                         // Check if the wire has a delay
-                        if (currentWire.delay != 0)
-                        {
+                        // if (currentWire.delay != 0)
+                        // {
                             // If the current time scale matches the delay and it's not the last scale index
                             if (currenttimescale == currentWire.delay && scaleindex != timeScale.size() + 1)
                             {
@@ -655,7 +656,7 @@ void computinglogic2(vector<Gates> library, vector<pair<string, vector<wire>>> i
                                 checks[j]=true;
                                 break;
                             }
-                        }
+                        // }
                     }
                 }
             }
@@ -746,6 +747,7 @@ int main(int argc, char *argv[])
 
     for (int i = 0; i < output.size(); i++)
     {
+        cout<< output[i].getTimeStamp() << " " << output[i].getInput() << " " << output[i].getLogicValue() << endl;
         if (output[i].getTimeStamp() != output[i + 1].getTimeStamp() || output[i].getInput() != output[i + 1].getInput() || output[i].getLogicValue() != output[i + 1].getLogicValue())
         {
             outfile << output[i].getTimeStamp() << " " << output[i].getInput() << " " << output[i].getLogicValue() << endl;
