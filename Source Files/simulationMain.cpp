@@ -8,8 +8,8 @@
 #include <cmath>
 #include <algorithm>
 #include <cstdlib>
-#include "Circuit Classes/Stimuli.h"
-#include "Circuit Classes/Gates.h"
+#include "../Circuit Classes/Stimuli.h"
+#include "../Circuit Classes/Gates.h"
 using namespace std;
 struct wire // Struct for wires is used to instantiate wires that have common attributes like name, delay,and boolean type.
 {
@@ -415,11 +415,9 @@ int precedence(char c)
 int extractinput(string expression, int &pos)
 {
     string operand = "";
-    cout << expression[pos] << endl;
     while (pos < expression.length() && !isoperator(expression[pos + 1]))
     {
         operand += expression[++pos]; // incrementing to get the first char after I
-        cout << operand << endl;
     }
     return stoi(operand);
 }
@@ -446,10 +444,13 @@ void computinglogic2(vector<Gates> library, vector<pair<string, vector<wire>>> i
     string expression;
     int currenttimescale = 0;
     int scaleindex = 0;
+    int x, y;
+    int k = 0;
+    string z;
     vector<bool> checks(stimuli.size(), false);
     if (!checkinputs(stimuli, ioComponents))
     {
-        cerr<<"An input can not be an Output "<<endl;
+        cerr << " An input can not be an Output " << endl;
         exit(5);
     }
     while (scaleindex <= timeScale.size())
@@ -457,7 +458,18 @@ void computinglogic2(vector<Gates> library, vector<pair<string, vector<wire>>> i
         auto it = ioComponents.begin();
         for (it = ioComponents.begin(); it != ioComponents.end(); it++)
         {
-            // cout<<"jsdhfkjshdfjkshdkjfhsdkjfhksjhdfkjshjkfhskjdfhkdsjhfkjhdkjfhskdjfhskjdfhskjdfhskjhfkjs"<<it->second[1].name<<it->second[1].type<<endl;
+            if (k > 0)
+            {
+                for (int l = 0; l < it->second.size(); l++)
+                {
+                    if (it->second[l].name == z)
+                    {
+                        it->second[l].actualdelay = y;
+                        it->second[l].type = x;
+                        it->second[l].initial.push(x);
+                    }
+                }
+            }
             int position = -1;
             int j = 0;
             bool found = false;
@@ -476,18 +488,17 @@ void computinglogic2(vector<Gates> library, vector<pair<string, vector<wire>>> i
                     break;
                 }
             }
-            if (!found)
-            {
-                cerr << Xwire << " is not declared as an input " << endl;
-                exit(12);
-            }
+            // if (!found)
+            // {
+            //     cerr << Xwire << " is not declared as an input " << endl;
+            //     exit(12);
+            // }
             for (int i = 0; i < library.size(); i++)
             {
                 if (it->first == library[i].getGateName())
                 {
                     position = i;
                     expression = library[i].getOutputExpression();
-                    cout << expression << endl;
                 }
             }
             while (j < expression.length())
@@ -519,7 +530,6 @@ void computinglogic2(vector<Gates> library, vector<pair<string, vector<wire>>> i
                             b = operands.top();
                             operands.pop();
                             operands.push(a && b);
-                            cout << operands.top();
                             break;
                         case '|':
                             b = operands.top();
@@ -581,41 +591,34 @@ void computinglogic2(vector<Gates> library, vector<pair<string, vector<wire>>> i
                     b = operands.top();
                     operands.pop();
                     operands.push(a || b);
-                    cout << operands.top();
                     break;
                 }
                 operators.pop();
             }
             if (!operands.empty())
             {
-                // cout << it->second[0].name << endl;
                 it->second[0].type = operands.top();
-                // cout << "operands" << operands.top();
-                // cout << "lololololollolololololololoololololololololol  " << it->second[0].name << "   " << it->second[0].type << endl;
                 // Check if the output wire has been initialized
                 if (it->second[0].initial.empty())
                 {
                     // If not, push the current state to the initial stack
                     it->second[0].initial.push(getWire(ioComponents, it->second[0].name));
                 }
-                // if (it->second[0].name == "w1")
-                // {
-                //     cout << "yesssssss"
-                //          << "    " << getWire(ioComponents, it->second[0].name) << endl;
-                // }
                 else if (it->second[0].initial.top() != it->second[0].type)
                 {
                     it->second[0].actualdelay = getmax(it->second, ioComponents) + library[position].getDelayTime();
-                    // if (it->second[0].name == "w1")
-                    // {
-                    //     cout << "yesssssss" << it->second[0].actualdelay << endl;
-                    // }
-                    // cout << "////////////////////////" << it->second[0].name << "  " << it->second[0].type << endl;
                     F_output.push_back({getDelay(ioComponents, it->second[0].name), it->second[0].name, it->second[0].type});
                     // Push the current state to the initial stack
                     it->second[0].initial.push(getWire(ioComponents, it->second[0].name));
                 }
                 cirInputs.push_back(it->second[0].name);
+            }
+            auto f = it + 1;
+            if (f == ioComponents.end())
+            {
+                x = it->second[0].type;
+                y = it->second[0].actualdelay;
+                z = it->second[0].name;
             }
         }
         if (scaleindex == 0)
@@ -646,12 +649,7 @@ void computinglogic2(vector<Gates> library, vector<pair<string, vector<wire>>> i
                     // Check if the current wire matches the input of any stimuli
                     if (currentWire.name == stimuli[j].getInput() && checks[j] == false)
                     {
-                        // cout << "hiiiiiiiiiiiiiiiii" << currentWire.name << endl;
                         currentWire.delay = stimuli[j].getTimeStamp();
-                        // Check if the wire has a delay
-                        // if (currentWire.delay != 0)
-                        // {
-                        // If the current time scale matches the delay and it's not the last scale index
                         if (currenttimescale == currentWire.delay && scaleindex != timeScale.size() + 1)
                         {
                             currentWire.actualdelay = currentWire.delay;
@@ -674,6 +672,7 @@ void computinglogic2(vector<Gates> library, vector<pair<string, vector<wire>>> i
                 }
             }
         }
+        k++;
     }
 }
 int findGCD(int a, int b)
@@ -735,10 +734,6 @@ int main(int argc, char *argv[])
 
     if (parseCircuitFile(circuitPath, mp, stimuli, cirInputs, libComponents))
     {
-        for (int i = 0; i < libComponents.size(); i++)
-        {
-            cout << libComponents[i].getGateName() << libComponents[i].getNumOfInputs() << libComponents[i].getOutputExpression() << libComponents[i].getDelayTime() << endl;
-        }
         computinglogic2(libComponents, mp, stimuli, timeScale, cirInputs, output);
     }
     else
@@ -761,7 +756,6 @@ int main(int argc, char *argv[])
 
     for (int i = 0; i < output.size(); i++)
     {
-        cout << output[i].getTimeStamp() << " " << output[i].getInput() << " " << output[i].getLogicValue() << endl;
         if (output[i].getTimeStamp() != output[i + 1].getTimeStamp() || output[i].getInput() != output[i + 1].getInput() || output[i].getLogicValue() != output[i + 1].getLogicValue())
         {
             outfile << output[i].getTimeStamp() << " " << output[i].getInput() << " " << output[i].getLogicValue() << endl;
