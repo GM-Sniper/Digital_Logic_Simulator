@@ -19,5 +19,5 @@ jobs:
 
     - name: Build and test
       run: |
-        g++ -std=c++11 -o simulationSC_Copy simulationSC_Copy.cpp
-        ./simulationSC_Copy "Tests/libFile.lib" "Tests/TestCircuit2/testCircuit2.cir" "Tests/TestCircuit2/stimFileCirc2.stim" "Tests/TestCircuit2/outputSimulation2.sim" "Tests/commonoutput.sim"
+       g++ -std=c++11 -o SourceFiles/simulationMain SourceFiles/simulationMain.cpp
+        ./SourceFiles/simulationMain "Tests/libFile.lib" "Tests/TestCircuit1/testCircuit1.cir" "Tests/TestCircuit1/stimFileCirc1.stim" "Tests/TestCircuit1/outputSimulation1.sim" "Tests/commonoutput.sim"
