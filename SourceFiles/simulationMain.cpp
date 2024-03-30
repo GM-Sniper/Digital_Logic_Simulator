@@ -450,7 +450,7 @@ void computinglogic2(vector<Gates> library, vector<pair<string, vector<wire>>> i
     vector<bool> checks(stimuli.size(), false);
     if (!checkinputs(stimuli, ioComponents))
     {
-        cerr << " This a sequential circuits, so it was run one time then terminated " << endl;
+        cerr << " An input can not be an Output " << endl;
         exit(5);
     }
     while (scaleindex <= timeScale.size())
