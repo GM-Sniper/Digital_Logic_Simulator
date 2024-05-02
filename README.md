@@ -84,5 +84,5 @@ When running the executable, the graph visualization will appear to showcase the
 
 ## Contributors
 - [Ramy Shehata](https://github.com/GM-Sniper)
-- [Omar Ganna](https://github.com/omar-ganna)
+- [Omar Ganna](https://github.com/Kancipher)
 - [Mohamed Khaled](https://github.com/mmohamedkhaled)
